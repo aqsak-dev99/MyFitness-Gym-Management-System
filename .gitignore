@@ -1,0 +1,23 @@
+# Compiled output
+out/
+out_src_only/
+*.class
+
+# Local database — never commit real data
+gym.db
+*.db-journal
+*.db-wal
+*.db-shm
+
+# Downloaded dependency jars — not source, shouldn't be tracked
+lib/*.jar
+
+# Temporary compile file lists
+sources.txt
+src_only.txt
+
+# VS Code
+.vscode/
+
+# macOS
+.DS_Store

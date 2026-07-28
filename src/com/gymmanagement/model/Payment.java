@@ -1,0 +1,59 @@
+package com.gymmanagement.model;
+
+import java.time.LocalDate;
+
+public class Payment {
+
+    public static final String STATUS_PENDING   = "PENDING";
+    public static final String STATUS_COMPLETED = "COMPLETED";
+    public static final String STATUS_FAILED    = "FAILED";
+
+    private String    paymentId;
+    private double    amount;
+    private LocalDate paymentDate;
+    private String    description;
+    private String    status;
+    private Member    member;
+
+    public Payment(String paymentId, double amount, String description, Member member) {
+        if (paymentId == null || paymentId.isBlank())
+            throw new IllegalArgumentException("Payment ID cannot be empty.");
+        if (amount <= 0)
+            throw new IllegalArgumentException("Payment amount must be positive.");
+        if (member == null)
+            throw new IllegalArgumentException("Payment must be linked to a member.");
+        this.paymentId   = paymentId;
+        this.amount      = amount;
+        this.description = description;
+        this.member      = member;
+        this.paymentDate = LocalDate.now();
+        this.status      = STATUS_PENDING;
+    }
+
+    // ── getters ──────────────────────────────────────────
+    public String    getPaymentId()   { return paymentId;   }
+    public double    getAmount()      { return amount;      }
+    public LocalDate getPaymentDate() { return paymentDate; }
+    public String    getDescription() { return description; }
+    public String    getStatus()      { return status;      }
+    public Member    getMember()      { return member;      }
+
+    // ── status mutator (used by PaymentService only) ──────
+    public void markCompleted() { this.status = STATUS_COMPLETED; }
+    public void markFailed()    { this.status = STATUS_FAILED;    }
+
+    // ── getDetails ────────────────────────────────────────
+    public String getDetails() {
+        return String.format(
+            "Payment ID  : %s%n" +
+            "Member      : %s%n" +
+            "Amount      : £%.2f%n" +
+            "Date        : %s%n" +
+            "Description : %s%n" +
+            "Status      : %s",
+            paymentId, member.getName(), amount, paymentDate, description, status);
+    }
+
+    @Override
+    public String toString() { return getDetails(); }
+}
