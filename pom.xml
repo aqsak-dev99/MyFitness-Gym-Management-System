@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.gymmanagement</groupId>
+    <artifactId>myfitness</artifactId>
+    <version>1.0.0</version>
+    <packaging>jar</packaging>
+
+    <name>MyFitness Gym Management System</name>
+    <description>
+        Layered Java gym management backend — SQLite persistence, BCrypt
+        authentication, JUnit 5 test suite.
+    </description>
+
+    <properties>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <!-- Centralised version numbers — same jars you were downloading by
+             hand before, just declared once here instead of curled manually. -->
+        <sqlite-jdbc.version>3.45.1.0</sqlite-jdbc.version>
+        <slf4j.version>1.7.36</slf4j.version>
+        <jbcrypt.version>0.4</jbcrypt.version>
+        <junit.version>5.10.2</junit.version>
+    </properties>
+
+    <dependencies>
+
+        <!-- SQLite JDBC driver — same artifact as lib/sqlite-jdbc-3.45.1.0.jar -->
+        <dependency>
+            <groupId>org.xerial</groupId>
+            <artifactId>sqlite-jdbc</artifactId>
+            <version>${sqlite-jdbc.version}</version>
+        </dependency>
+
+        <!-- SLF4J — the transitive dependency sqlite-jdbc needed, that we
+             had to discover and download by hand earlier. Maven resolves
+             this automatically now; it never needs to be listed manually
+             again once it's a transitive dependency of sqlite-jdbc, but
+             declaring it explicitly here keeps the version pinned and visible. -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>${slf4j.version}</version>
+        </dependency>
+
+        <!-- BCrypt password hashing — same artifact as lib/jbcrypt-0.4.jar -->
+        <dependency>
+            <groupId>org.mindrot</groupId>
+            <artifactId>jbcrypt</artifactId>
+            <version>${jbcrypt.version}</version>
+        </dependency>
+
+        <!-- JUnit 5 — replaces the junit-platform-console-standalone jar.
+             scope=test means this is only on the classpath when running
+             tests, never bundled into the actual application. -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+    </dependencies>
+
+    <build>
+        <finalName>myfitness</finalName>
+        <plugins>
+
+            <!-- Runs `mvn test` using JUnit 5 — this is what replaces the
+                 manual `java -jar junit-platform-console-standalone...` command. -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.2.5</version>
+            </plugin>
+
+            <!-- Lets `mvn compile exec:java` run Main directly, same as
+                 your old `java -cp out com.gymmanagement.Main` command. -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.2.0</version>
+                <configuration>
+                    <mainClass>com.gymmanagement.Main</mainClass>
+                </configuration>
+            </plugin>
+
+        </plugins>
+    </build>
+
+</project>

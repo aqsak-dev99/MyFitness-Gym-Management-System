@@ -21,3 +21,6 @@ src_only.txt
 
 # macOS
 .DS_Store
+
+# Maven build output
+target/
