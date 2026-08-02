@@ -2,9 +2,7 @@
 
 A gym management backend, built from scratch to survive the kind of question that starts with "walk me through why you did it this way." Not a tutorial clone, not a class assignment — a real system that's been broken, debugged, and fixed enough times to actually mean something.
 
-It manages members, three different membership pricing models, bootcamp classes with capacity and discount logic, payments, and login — all backed by a real database, all covered by a real test suite.
-
----
+It manages members, three different membership pricing models, bootcamp classes with capacity and discount logic, payments, and login — all backed by a real database, all covered by a real test suite, all built through a real dependency-management tool instead of hand-downloaded jars.
 
 ## What it does
 
@@ -41,7 +39,9 @@ com.gymmanagement
 └── ui/                      GymConsoleApp — the only class allowed to touch System.out
 ```
 
-This wasn't the first shape it took. It started as one flat `Main.java` — creating objects, running demo scenarios, printing output, and standing in as the database, all in the same file. Splitting that apart was the single change that mattered most here. `Main.java` is about 10 lines now. It wires four services together and gets out of the way. Everything else has exactly one job.
+Source lives under Maven's standard layout — `src/main/java/...` for the application, `src/test/java/...` for the 31-test suite — rather than a flat `src/` folder.
+
+This wasn't the first shape it took, in either sense. It started as one flat `Main.java` — creating objects, running demo scenarios, printing output, and standing in as the database, all in the same file. Splitting that apart was the single change that mattered most here. `Main.java` is about 10 lines now. It wires four services together and gets out of the way. Everything else has exactly one job. The build system went through its own equivalent shift later — from manually downloaded jars and hand-built classpath strings to Maven managing every dependency by declaration. Same principle, different layer: stop doing by hand what a tool exists to do correctly.
 
 ---
 
@@ -53,19 +53,22 @@ Every one of these exists because something broke first, not because a guide sai
 `INSERT OR REPLACE` doesn't update a row — it deletes it and inserts a new one. With `ON DELETE CASCADE` on `bootcamp_enrolments.member_id`, that meant every routine member update silently wiped that member's bootcamp enrolments. Nothing errored. It just quietly lost data. Switching to a real `UPDATE` fixed it without touching the cascade rule anywhere else.
 
 **`users.member_id` uses `ON DELETE SET NULL`, not `CASCADE`.**
-Applied on purpose, right after finding the bug above. Deleting a member shouldn't be able to silently delete their login too.
+Applied on purpose, right after finding the bug above, and before it had the chance to repeat itself in the newly added auth tables. Deleting a member shouldn't be able to silently delete their login too.
 
 **`Member.equals()` and `hashCode()` are based on `memberId`, not object identity.**
-Every SQLite fetch builds a brand-new `Member` object. Without this override, two fetches of "the same" member were never equal to each other, which quietly broke duplicate-enrolment checks and — less obviously — made the bootcamp discount logic never fire, since it depends on counting a member's existing enrolments correctly.
+Every SQLite fetch builds a brand-new `Member` object. Without this override, two fetches of "the same" member were never equal to each other, which quietly broke duplicate-enrolment checks and — less obviously — made the bootcamp discount logic never fire, since it depends on counting a member's existing enrolments correctly. Two of the 31 tests exist purely to make sure this specific fix can never silently regress.
 
 **Idempotent `registerIfAbsent()`-style helpers throughout.**
 Re-running setup against an existing `gym.db` shouldn't throw a duplicate-key exception. It should just recognize the data's already there and move on.
 
 **A hand-written `FakeMemberRepository` instead of Mockito.**
-The build is manual `javac` and jars right now, no Maven. Mockito pulls in three more transitive dependencies for a project already juggling classpath jars by hand. A five-minute fake implementing the same interface tests the service layer just as well, without the extra dependency risk.
+Mockito pulls in several more transitive dependencies. Given how much of this project involved untangling dependency and classpath issues by hand, adding a heavier mocking framework for a marginal convenience felt like the wrong tradeoff. A five-minute fake implementing the same interface tests the service layer just as well, with nothing extra to break.
 
 **`Arrays.asList()` instead of `List.of()` for nullable payment lists.**
 `List.of()` throws on any `null` element. In this codebase, `null` in that list is a meaningful, legitimate value — not a bug to guard against.
+
+**Manual `javac` and jars first, then a deliberate Maven migration — not Maven from day one.**
+The project started on manual `javac` because that's what surfaced *why* a build tool matters in the first place: chasing individual jar files, discovering `sqlite-jdbc` needed `slf4j-api` as an undeclared transitive dependency, and hand-writing classpath strings for every compile and every test run. Migrating to Maven afterward meant that value was actually understood, not just assumed.
 
 ---
 
@@ -73,29 +76,33 @@ The build is manual `javac` and jars right now, no Maven. Mockito pulls in three
 
 | | |
 |---|---|
-| Language | Java |
+| Language | Java 21 |
 | Persistence | SQLite via JDBC |
 | Auth | BCrypt |
-| Testing | JUnit 5, hand-rolled fakes (no mocking framework yet) |
-| Build | manual `javac` + jars — Maven is next |
+| Testing | JUnit 5, hand-rolled fakes (no mocking framework) |
+| Build | Maven |
 
 ---
 
 ## Running it locally
 
 ```bash
-find src test -name "*.java" > sources.txt
-javac -cp "lib/sqlite-jdbc-3.45.1.0.jar:lib/slf4j-api-1.7.36.jar:lib/jbcrypt-0.4.jar:lib/junit-platform-console-standalone-1.10.2.jar" -d out @sources.txt
-java -cp "out:lib/sqlite-jdbc-3.45.1.0.jar:lib/slf4j-api-1.7.36.jar:lib/jbcrypt-0.4.jar" com.gymmanagement.Main
+mvn compile
 ```
 
-Running the test suite:
+Run the app:
 
 ```bash
-java -jar lib/junit-platform-console-standalone-1.10.2.jar execute \
-  --classpath "out:lib/sqlite-jdbc-3.45.1.0.jar:lib/slf4j-api-1.7.36.jar:lib/jbcrypt-0.4.jar" \
-  --scan-classpath --details tree
+mvn compile exec:java
 ```
+
+Run the full test suite:
+
+```bash
+mvn test
+```
+
+That's it. Maven resolves `sqlite-jdbc`, `slf4j-api`, `jbcrypt`, and `junit-jupiter` on its own — no manually downloaded jars, no classpath strings to assemble by hand.
 
 `gym.db` is created automatically on first run. Re-running is safe — nothing gets seeded twice.
 
@@ -107,7 +114,7 @@ java -jar lib/junit-platform-console-standalone-1.10.2.jar execute \
 2. ~~SQLite persistence~~ — done
 3. ~~Authentication~~ — done
 4. ~~JUnit coverage across all four services~~ — done, 31 tests passing
-5. Migrate off manual `javac` onto Maven — the test suite exists partly to catch anything this migration breaks
+5. ~~Migrate off manual `javac` onto Maven~~ — done. The test suite existed partly to catch anything this migration broke — it caught nothing, all 31 passed straight through the new build layout.
 6. Convert to a Spring Boot REST API
 7. Docker
 8. Deploy — Azure App Service (free tier) + Azure SQL, Render as backup so the live link doesn't go dark mid-application-cycle
