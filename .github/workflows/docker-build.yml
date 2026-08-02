@@ -1,0 +1,30 @@
+name: Docker Build
+
+# Runs on every push to main, and on every pull request — so a broken
+# Dockerfile gets caught immediately, not discovered later at deploy time.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    # GitHub provides this machine — a fresh Ubuntu Linux VM with Docker
+    # already installed and working. This is exactly what sidesteps the
+    # macOS 12 / QEMU problem entirely: the build never touches your Mac.
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Build the Docker image
+        run: docker build -t myfitness .
+
+      # This doesn't deploy anything or push the image anywhere yet —
+      # it only proves the Dockerfile actually builds successfully.
+      # A green checkmark here is the same proof `docker build` locally
+      # would have given, just produced on a machine that can run it.
+      - name: Confirm image was created
+        run: docker images myfitness

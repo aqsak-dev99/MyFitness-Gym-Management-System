@@ -1,0 +1,25 @@
+# Build output — Docker builds fresh inside the container, this shouldn't
+# be copied in at all
+target/
+
+# The old manual-jar era — not used since the Maven migration, and would
+# be actively wrong to have sitting in a Docker build context
+lib/
+
+# Local database — never ship your local dev data into an image
+gym.db
+*.db-journal
+*.db-wal
+*.db-shm
+
+# Old manual-compile leftovers
+sources.txt
+compile.sh
+
+# Editor / OS noise — irrelevant to the build, no reason to send it
+.vscode/
+.DS_Store
+
+# Git metadata — large, completely unnecessary inside the image
+.git/
+.gitignore
