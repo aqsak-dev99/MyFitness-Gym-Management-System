@@ -4,6 +4,8 @@ import com.gymmanagement.db.DatabaseManager;
 import com.gymmanagement.model.Role;
 import com.gymmanagement.model.User;
 
+import org.springframework.stereotype.Repository;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -21,7 +23,11 @@ import java.util.Optional;
  * There's no child table referencing users(user_id) yet, so this isn't a
  * live bug today — but writing it the safe way from day one means it never
  * becomes one later if a child table is added.
+ *
+ * @Repository — has a plain no-arg constructor, same as SqliteMemberRepository,
+ * so nothing else needs wiring for this bean.
  */
+@Repository
 public class SqliteUserRepository implements UserRepository {
 
     private Connection conn() {

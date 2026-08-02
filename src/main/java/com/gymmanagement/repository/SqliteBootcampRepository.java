@@ -6,6 +6,8 @@ import com.gymmanagement.model.Instructor;
 import com.gymmanagement.model.Member;
 import com.gymmanagement.model.membership.BootcampType;
 
+import org.springframework.stereotype.Repository;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -40,7 +42,14 @@ import java.util.function.Supplier;
  *   Enrolment sync: DELETE all existing rows for this class_id, then
  *   re-INSERT the current participants.  This is simpler and safer than
  *   diff-based upsert for a small dataset.
+ *
+ * @Repository marks this as the Spring-managed bean fulfilling the
+ * BootcampRepository interface. Its constructor also needs a
+ * SqliteMemberRepository (already @Repository-annotated) and a
+ * Supplier<List<Instructor>> (provided by StaffConfig) — Spring resolves
+ * both automatically since there's exactly one bean of each type.
  */
+@Repository
 public class SqliteBootcampRepository implements BootcampRepository {
 
     private final SqliteMemberRepository   memberRepo;

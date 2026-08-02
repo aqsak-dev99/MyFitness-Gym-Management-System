@@ -6,6 +6,8 @@ import com.gymmanagement.model.Member;
 import com.gymmanagement.model.membership.Membership;
 import com.gymmanagement.repository.MemberRepository;
 
+import org.springframework.stereotype.Service;
+
 import java.util.List;
 
 /**
@@ -19,7 +21,15 @@ import java.util.List;
  * This class has NO System.out calls and NO ArrayList declarations.
  * It receives a MemberRepository via constructor injection so the
  * storage implementation can be swapped without touching this class.
+ *
+ * @Service marks this as a Spring-managed bean. It's the ONLY change
+ * Spring needed here — the constructor-injection pattern this class
+ * already used is exactly what Spring auto-wires. The 4 existing JUnit
+ * tests still run with zero Spring involvement (`new MemberService(fakeRepo)`
+ * still works exactly as before) — this annotation is inert outside of a
+ * running Spring container.
  */
+@Service
 public class MemberService {
 
     private final MemberRepository memberRepo;

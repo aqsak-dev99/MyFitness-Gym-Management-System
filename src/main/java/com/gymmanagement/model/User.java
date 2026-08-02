@@ -1,5 +1,7 @@
 package com.gymmanagement.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 /**
  * User represents a login account — separate from Member and Staff.
  *
@@ -46,9 +48,21 @@ public class User {
 
     public String getUserId()         { return userId;        }
     public String getUsername()       { return username;       }
-    public String getPasswordHash()   { return passwordHash;   }
     public Role   getRole()           { return role;           }
     public String getLinkedMemberId() { return linkedMemberId; }
+
+    /**
+     * @JsonIgnore — a real security fix, not just avoiding a crash like the
+     * earlier ones. getDetails() below already kept the hash out of console
+     * output, but that's a completely different mechanism from Jackson's
+     * JSON serialisation, which reflects over every public getter
+     * independently. Without this, every response containing a User —
+     * register, login, anything — would have quietly included the bcrypt
+     * hash in the JSON body. Hashed is not the same as safe to expose;
+     * there's no legitimate reason a client ever needs this value.
+     */
+    @JsonIgnore
+    public String getPasswordHash() { return passwordHash; }
 
     /**
      * Deliberately does NOT include passwordHash in the printed output —

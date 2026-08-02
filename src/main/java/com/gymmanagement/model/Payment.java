@@ -1,5 +1,7 @@
 package com.gymmanagement.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import java.time.LocalDate;
 
 public class Payment {
@@ -36,7 +38,26 @@ public class Payment {
     public LocalDate getPaymentDate() { return paymentDate; }
     public String    getDescription() { return description; }
     public String    getStatus()      { return status;      }
-    public Member    getMember()      { return member;      }
+
+    /**
+     * @JsonIgnore stops Jackson (Spring's JSON converter) from serialising
+     * this field. Without it: Member → paymentHistory → each Payment →
+     * getMember() → the same Member → paymentHistory → ... forever, until
+     * the stack overflows. That's exactly what crashed GET /api/members —
+     * a payment nested inside a member re-including that same member,
+     * infinitely.
+     *
+     * This is a pragmatic fix, not the permanent one. It works because
+     * a Payment is always accessed through its owning Member already
+     * (member.getPaymentHistory()), so re-including the member inside
+     * each payment's JSON is redundant, not just cyclical. The more
+     * scalable long-term fix — for this AND the same latent problem in
+     * Instructor ↔ GymClass — is a dedicated response DTO per endpoint
+     * that only includes what that specific response actually needs,
+     * so the domain model itself never has to know Jackson exists.
+     */
+    @JsonIgnore
+    public Member getMember() { return member; }
 
     // ── status mutator (used by PaymentService only) ──────
     public void markCompleted() { this.status = STATUS_COMPLETED; }

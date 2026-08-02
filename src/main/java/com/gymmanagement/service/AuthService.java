@@ -7,6 +7,7 @@ import com.gymmanagement.model.Role;
 import com.gymmanagement.model.User;
 import com.gymmanagement.repository.UserRepository;
 import org.mindrot.jbcrypt.BCrypt;
+import org.springframework.stereotype.Service;
 
 import java.util.UUID;
 
@@ -16,7 +17,10 @@ import java.util.UUID;
  * BCrypt directly — User never sees a plain-text password, and
  * SqliteUserRepository never hashes or checks anything, it just stores
  * whatever hash it's given.
+ *
+ * @Service — same reasoning as the other three services.
  */
+@Service
 public class AuthService {
 
     private final UserRepository userRepo;

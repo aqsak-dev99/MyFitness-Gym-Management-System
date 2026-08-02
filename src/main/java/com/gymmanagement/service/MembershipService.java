@@ -11,6 +11,8 @@ import com.gymmanagement.model.membership.PayAsYouGoMembership;
 import com.gymmanagement.repository.BootcampRepository;
 import com.gymmanagement.repository.MemberRepository;
 
+import org.springframework.stereotype.Service;
+
 import java.util.List;
 
 /**
@@ -27,7 +29,12 @@ import java.util.List;
  *    not inside the model object.
  *
  * No System.out calls. Repositories injected via constructor.
+ *
+ * @Service — same reasoning as MemberService. This class was never
+ * annotated until now, which is exactly why MembershipController just
+ * failed to start: Spring's component scan had no bean to inject.
  */
+@Service
 public class MembershipService {
 
     private final MemberRepository   memberRepo;

@@ -7,6 +7,8 @@ import com.gymmanagement.model.Instructor;
 import com.gymmanagement.model.PartTimeStaff;
 import com.gymmanagement.model.Staff;
 
+import org.springframework.stereotype.Service;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -23,7 +25,12 @@ import java.util.stream.Stream;
  *
  * No System.out calls. No ArrayList exposed outside this class.
  * Lists are injected at construction so this service is fully testable.
+ *
+ * @Service — Spring auto-wires the three List constructor parameters from
+ * the beans already defined in StaffConfig (built specifically ahead of
+ * this, when MembershipService was wired up).
  */
+@Service
 public class TrainerService {
 
     private final List<FullTimeStaff> fullTimeStaff;

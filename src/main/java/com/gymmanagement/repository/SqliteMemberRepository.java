@@ -8,6 +8,8 @@ import com.gymmanagement.model.membership.PayAsYouGoMembership;
 import com.gymmanagement.model.membership.StandardMembership;
 import com.gymmanagement.model.membership.StudentSaverMembership;
 
+import org.springframework.stereotype.Repository;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -44,7 +46,13 @@ import java.util.Optional;
  *   save() uses a manual transaction (setAutoCommit false) so that the
  *   member row, membership row, and payment rows are written atomically.
  *   If any step fails the whole save is rolled back.
+ *
+ * @Repository marks this as the Spring-managed bean fulfilling the
+ * MemberRepository interface. Since this is the only implementation
+ * registered, Spring injects it automatically wherever a MemberRepository
+ * is asked for — like MemberService's constructor — no extra config needed.
  */
+@Repository
 public class SqliteMemberRepository implements MemberRepository {
 
     private Connection conn() {
