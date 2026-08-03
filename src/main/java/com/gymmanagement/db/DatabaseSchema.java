@@ -116,6 +116,11 @@ public final class DatabaseSchema {
         "  FOREIGN KEY (member_id) REFERENCES members(member_id) ON DELETE SET NULL" +
         ")";
 
-    // ── enable FK enforcement (run once per connection) ───
-    public static final String ENABLE_FOREIGN_KEYS = "PRAGMA foreign_keys = ON";
+    // No ENABLE_FOREIGN_KEYS constant anymore. SQLite needed
+    // "PRAGMA foreign_keys = ON" because it ships with foreign key
+    // enforcement OFF by default — an easy-to-miss footgun. Postgres has
+    // no such switch: foreign keys (and every ON DELETE CASCADE / SET NULL
+    // rule above) are enforced unconditionally, always. One less thing
+    // to remember to turn on, and one less way to silently lose that
+    // protection if a connection setup step gets skipped.
 }

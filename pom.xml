@@ -66,7 +66,18 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- SQLite JDBC driver — unchanged from before -->
+        <!-- PostgreSQL JDBC driver — replaces SQLite as the real database. -->
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>42.7.3</version>
+        </dependency>
+
+        <!-- SQLite JDBC driver — left in place for now, unused once
+             DatabaseManager fully switches to Postgres. Not removing it
+             yet on purpose: keeping it doesn't hurt anything, and it stays
+             available as a fallback until Postgres is fully proven
+             working end-to-end. Safe to delete in a later cleanup pass. -->
         <dependency>
             <groupId>org.xerial</groupId>
             <artifactId>sqlite-jdbc</artifactId>
