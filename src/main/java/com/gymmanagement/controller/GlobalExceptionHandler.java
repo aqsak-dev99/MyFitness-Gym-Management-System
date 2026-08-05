@@ -1,6 +1,9 @@
 package com.gymmanagement.controller;
 
+import com.gymmanagement.exception.AiRateLimitExceededException;
+import com.gymmanagement.exception.AiServiceException;
 import com.gymmanagement.exception.ClassFullException;
+import com.gymmanagement.exception.DocumentNotFoundException;
 import com.gymmanagement.exception.DuplicateMemberException;
 import com.gymmanagement.exception.DuplicateUserException;
 import com.gymmanagement.exception.InvalidCredentialsException;
@@ -30,6 +33,7 @@ import java.util.Map;
  *  - PaymentFailedException     → 402 Payment Required (a real HTTP status that exists for exactly this)
  *  - InvalidCredentialsException → 401 Unauthorized  (login failed — who you claim to be wasn't verified)
  *  - UnauthorizedException      → 403 Forbidden       (you ARE who you say — you just can't do this)
+ *  - AiServiceException         → 502 Bad Gateway     (we're a gateway to Gemini, and Gemini's response was bad)
  *  - IllegalArgumentException   → 400 Bad Request    (the request itself was invalid)
  *
  * 401 vs 403 is a real, commonly-confused distinction worth being precise
@@ -42,6 +46,13 @@ import java.util.Map;
  * UnauthorizedException fires from requireRole(), which only ever runs
  * on an ALREADY-authenticated User — so 403 is correct there, not 401.
  *
+ * 502 is worth being equally precise about: it specifically means "this
+ * server, acting as a gateway, got an invalid response from an upstream
+ * server it depends on." That's exactly what's happening when this app
+ * calls Gemini and Gemini's call fails — not a bug in our own code, a
+ * genuine external dependency issue, and 502 says that honestly rather
+ * than a generic 500 implying our own code broke.
+ *
  * @RestControllerAdvice applies these handlers across every
  * @RestController in the project — one place, not repeated per-controller.
  *
@@ -51,6 +62,11 @@ import java.util.Map;
  */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(DocumentNotFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleDocumentNotFound(DocumentNotFoundException e) {
+        return buildResponse(HttpStatus.NOT_FOUND, e.getMessage());
+    }
 
     @ExceptionHandler(MemberNotFoundException.class)
     public ResponseEntity<Map<String, Object>> handleNotFound(MemberNotFoundException e) {
@@ -97,6 +113,16 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(UnauthorizedException.class)
     public ResponseEntity<Map<String, Object>> handleUnauthorized(UnauthorizedException e) {
         return buildResponse(HttpStatus.FORBIDDEN, e.getMessage());
+    }
+
+    @ExceptionHandler(AiRateLimitExceededException.class)
+    public ResponseEntity<Map<String, Object>> handleAiRateLimit(AiRateLimitExceededException e) {
+        return buildResponse(HttpStatus.TOO_MANY_REQUESTS, e.getMessage());
+    }
+
+    @ExceptionHandler(AiServiceException.class)
+    public ResponseEntity<Map<String, Object>> handleAiServiceFailure(AiServiceException e) {
+        return buildResponse(HttpStatus.BAD_GATEWAY, e.getMessage());
     }
 
     @ExceptionHandler(IllegalArgumentException.class)

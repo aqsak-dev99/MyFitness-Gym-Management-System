@@ -125,6 +125,8 @@ public final class DatabaseManager {
             st.execute(DatabaseSchema.CREATE_BOOTCAMP_CLASSES);
             st.execute(DatabaseSchema.CREATE_BOOTCAMP_ENROLMENTS);
             st.execute(DatabaseSchema.CREATE_USERS);
+            st.execute(DatabaseSchema.CREATE_DOCUMENTS);
+            st.execute(DatabaseSchema.CREATE_DOCUMENT_CHUNKS);
         }
         System.out.println("[DB] Schema verified.");
     }

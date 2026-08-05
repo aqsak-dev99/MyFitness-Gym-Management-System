@@ -28,3 +28,5 @@ target/
 .agents/
 skills-lock.json
 .neon
+set-env.sh
+app.log

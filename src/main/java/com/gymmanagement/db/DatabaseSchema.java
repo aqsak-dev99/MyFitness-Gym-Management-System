@@ -123,4 +123,37 @@ public final class DatabaseSchema {
     // rule above) are enforced unconditionally, always. One less thing
     // to remember to turn on, and one less way to silently lose that
     // protection if a connection setup step gets skipped.
+
+    // ── documents (RAG feature, Milestone 1) ──────────────
+    // Raw storage only — the whole document's text content in one row.
+    // No chunking, no embeddings yet; those are separate, later tables
+    // (document_chunks) built on top of this once storage itself is
+    // proven working. Deliberately not a file upload today — content is
+    // plain text pasted into the request body. Real file/PDF upload is a
+    // separate, later enhancement, not needed to prove this pipeline.
+    public static final String CREATE_DOCUMENTS =
+        "CREATE TABLE IF NOT EXISTS documents (" +
+        "  document_id  TEXT PRIMARY KEY," +
+        "  filename     TEXT NOT NULL," +
+        "  content      TEXT NOT NULL," +
+        "  uploaded_at  TEXT NOT NULL" +
+        ")";
+
+    // ── document_chunks (RAG feature, Milestone 2) ────────
+    // Split pieces of a document's content, generated automatically on
+    // upload. Uses ON DELETE CASCADE — deliberately the opposite choice
+    // from users.member_id earlier in this schema. That distinction was
+    // never "always avoid CASCADE" — it was "avoid it when the child row
+    // has independent value" (a login account matters on its own, even
+    // if the linked member is deleted). A chunk has no such independent
+    // value: it's purely derived from its parent document's content, and
+    // has no reason to exist once that document is gone.
+    public static final String CREATE_DOCUMENT_CHUNKS =
+        "CREATE TABLE IF NOT EXISTS document_chunks (" +
+        "  chunk_id     TEXT PRIMARY KEY," +
+        "  document_id  TEXT NOT NULL," +
+        "  chunk_index  INTEGER NOT NULL," +
+        "  content      TEXT NOT NULL," +
+        "  FOREIGN KEY (document_id) REFERENCES documents(document_id) ON DELETE CASCADE" +
+        ")";
 }
