@@ -9,13 +9,16 @@ import com.gymmanagement.repository.DocumentRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 /**
- * DocumentService — Milestone 1 (upload/retrieve) plus Milestone 2
- * (automatic chunking on upload). Embeddings and retrieval are still
- * separate, later services building on top of this one.
+ * DocumentService — Milestone 1 (upload/retrieve), Milestone 2
+ * (automatic chunking), and now Milestone 4 (automatic embedding) all
+ * happen inside one uploadDocument() call. Retrieval logic itself lives
+ * in DocumentQaService, not here — this class's job stops at "the
+ * document is stored, chunked, and every chunk has a vector."
  */
 @Service
 public class DocumentService {
@@ -23,20 +26,25 @@ public class DocumentService {
     private final DocumentRepository      documentRepo;
     private final DocumentChunkRepository chunkRepo;
     private final ChunkingService         chunkingService;
+    private final GeminiEmbeddingClient   embeddingClient;
 
     public DocumentService(DocumentRepository documentRepo,
                            DocumentChunkRepository chunkRepo,
-                           ChunkingService chunkingService) {
+                           ChunkingService chunkingService,
+                           GeminiEmbeddingClient embeddingClient) {
         this.documentRepo    = documentRepo;
         this.chunkRepo       = chunkRepo;
         this.chunkingService = chunkingService;
+        this.embeddingClient = embeddingClient;
     }
 
     /**
-     * Uploads a document and immediately splits it into chunks, saving
-     * both in one call. Chunking failure isn't handled separately from
-     * upload failure — if this method returns successfully, the document
-     * is both stored AND chunked, never one without the other.
+     * Uploads a document, splits it into chunks, and embeds every chunk
+     * — all three happen in one call, on the same "all-or-nothing"
+     * principle Milestone 2 established for chunking: if this method
+     * returns successfully, the document is stored, chunked, AND every
+     * chunk has a vector ready for search. Nothing downstream has to
+     * check whether embedding "happened to work."
      */
     public Document uploadDocument(String filename, String content) {
         String documentId = "DOC-" + UUID.randomUUID();
@@ -44,9 +52,22 @@ public class DocumentService {
         documentRepo.save(document);
 
         List<String> chunkTexts = chunkingService.chunk(content);
+        List<String> chunkIds = new ArrayList<>();
         for (int i = 0; i < chunkTexts.size(); i++) {
             String chunkId = "CHUNK-" + UUID.randomUUID();
             chunkRepo.save(new DocumentChunk(chunkId, documentId, i, chunkTexts.get(i)));
+            chunkIds.add(chunkId);
+        }
+
+        // One Gemini call embeds every chunk regardless of how many
+        // there are (see GeminiEmbeddingClient.embedChunks for why).
+        // Skipped entirely for empty content — nothing to embed, and
+        // calling Gemini with an empty list would be a wasted request.
+        if (!chunkTexts.isEmpty()) {
+            List<float[]> embeddings = embeddingClient.embedChunks(chunkTexts);
+            for (int i = 0; i < chunkIds.size(); i++) {
+                chunkRepo.saveEmbedding(chunkIds.get(i), embeddings.get(i));
+            }
         }
 
         return document;

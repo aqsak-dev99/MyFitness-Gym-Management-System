@@ -139,7 +139,7 @@ public final class DatabaseSchema {
         "  uploaded_at  TEXT NOT NULL" +
         ")";
 
-    // ── document_chunks (RAG feature, Milestone 2) ────────
+    // ── document_chunks (RAG feature, Milestone 2, extended in 4) ──
     // Split pieces of a document's content, generated automatically on
     // upload. Uses ON DELETE CASCADE — deliberately the opposite choice
     // from users.member_id earlier in this schema. That distinction was
@@ -148,12 +148,43 @@ public final class DatabaseSchema {
     // if the linked member is deleted). A chunk has no such independent
     // value: it's purely derived from its parent document's content, and
     // has no reason to exist once that document is gone.
+    //
+    // The embedding column (Milestone 4) is nullable on purpose: chunks
+    // created before this migration have no embedding yet, and retrieval
+    // must correctly skip them rather than error.
+    //
+    // VECTOR(3072), not 768: gemini-embedding-001's batchEmbedContents
+    // endpoint did not honour the requested outputDimensionality=768
+    // truncation — it returned full 3072-dimensional vectors regardless,
+    // confirmed by a real "expected 768 dimensions, not 3072" Postgres
+    // error during testing. Rather than keep fighting an API quirk,
+    // this column now matches what Gemini actually sends. Less compact
+    // than the originally-planned 768, but correct — a working, larger
+    // vector beats a broken, smaller one.
     public static final String CREATE_DOCUMENT_CHUNKS =
         "CREATE TABLE IF NOT EXISTS document_chunks (" +
         "  chunk_id     TEXT PRIMARY KEY," +
         "  document_id  TEXT NOT NULL," +
         "  chunk_index  INTEGER NOT NULL," +
         "  content      TEXT NOT NULL," +
+        "  embedding    VECTOR(3072)," +
         "  FOREIGN KEY (document_id) REFERENCES documents(document_id) ON DELETE CASCADE" +
         ")";
+
+    // ── pgvector extension (RAG feature, Milestone 4) ──────
+    // Switches on the `vector` type Postgres needs to understand the
+    // embedding column above. Neon pre-installs the pgvector binary;
+    // this just enables it for this specific database. IF NOT EXISTS
+    // makes it safe to run on every app startup, same as every
+    // CREATE TABLE statement in this file.
+    public static final String CREATE_VECTOR_EXTENSION =
+        "CREATE EXTENSION IF NOT EXISTS vector";
+
+    // document_chunks may already exist from before this migration —
+    // the embedding column in CREATE_DOCUMENT_CHUNKS above only takes
+    // effect when that CREATE TABLE actually creates a new table. This
+    // ALTER is what adds the column to a table that already exists.
+    // IF NOT EXISTS makes it safe to run again on every future startup.
+    public static final String ADD_EMBEDDING_COLUMN =
+        "ALTER TABLE document_chunks ADD COLUMN IF NOT EXISTS embedding VECTOR(3072)";
 }

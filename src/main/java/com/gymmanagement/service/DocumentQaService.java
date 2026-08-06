@@ -9,44 +9,46 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * DocumentQaService — the actual "ask a question about this document"
- * feature. Ties together chunking (already built), naive retrieval
- * (RetrievalService), and Gemini (GeminiClient) into one working flow.
- *
- * This call automatically goes through GeminiClient's existing rate
- * limiter — no new wiring needed for that protection, since every path
- * to Gemini in this project runs through that one class.
+ * DocumentQaService — Milestone 4 update: retrieval is now real vector
+ * search through pgvector instead of RetrievalService's keyword overlap.
+ * RetrievalService itself is left in place, unused by this class — it's
+ * a legitimate "v1" worth pointing to when explaining how the feature
+ * evolved, not dead code to feel bad about.
  */
 @Service
 public class DocumentQaService {
 
+    private static final int TOP_K = 5;
+
     private final DocumentChunkRepository chunkRepo;
-    private final RetrievalService        retrievalService;
+    private final GeminiEmbeddingClient   embeddingClient;
     private final GeminiClient            geminiClient;
     private final DocumentService         documentService;
 
     public DocumentQaService(DocumentChunkRepository chunkRepo,
-                             RetrievalService retrievalService,
+                             GeminiEmbeddingClient embeddingClient,
                              GeminiClient geminiClient,
                              DocumentService documentService) {
-        this.chunkRepo        = chunkRepo;
-        this.retrievalService = retrievalService;
-        this.geminiClient     = geminiClient;
-        this.documentService  = documentService;
+        this.chunkRepo       = chunkRepo;
+        this.embeddingClient = embeddingClient;
+        this.geminiClient    = geminiClient;
+        this.documentService = documentService;
     }
 
     public String askAboutDocument(String documentId, String question) {
         documentService.getDocument(documentId);   // throws DocumentNotFoundException if missing
 
-        List<DocumentChunk> allChunks = chunkRepo.findByDocumentId(documentId);
-        List<DocumentChunk> relevantChunks = retrievalService.findRelevantChunks(question, allChunks);
+        float[] questionEmbedding = embeddingClient.embedQuestion(question);
+        List<DocumentChunk> relevantChunks =
+            chunkRepo.findNearestByEmbedding(documentId, questionEmbedding, TOP_K);
 
-        // A simple, honest version of "confidence-based refusal" from the
-        // original feature checklist: if keyword matching found nothing
-        // relevant at all, don't call Gemini — return directly. This is
-        // both a better answer (no risk of a hallucinated response about
-        // content that isn't there) and a real quota saving, which matters
-        // given tonight's daily-limit discovery.
+        // Still a real, if simpler, form of Milestone 3's refusal idea:
+        // a document with zero embedded chunks (nothing uploaded since
+        // Milestone 4 shipped, or an upload that predates it) has
+        // nothing to compare against, so skip the Gemini chat call
+        // entirely rather than answer from nothing. Confidence-based
+        // refusal on MATCH QUALITY itself — not just presence/absence —
+        // is Milestone 5's job, deliberately not tackled here.
         if (relevantChunks.isEmpty()) {
             return "I couldn't find anything in this document relevant to your question.";
         }

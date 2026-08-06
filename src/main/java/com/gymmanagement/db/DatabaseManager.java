@@ -126,7 +126,9 @@ public final class DatabaseManager {
             st.execute(DatabaseSchema.CREATE_BOOTCAMP_ENROLMENTS);
             st.execute(DatabaseSchema.CREATE_USERS);
             st.execute(DatabaseSchema.CREATE_DOCUMENTS);
+            st.execute(DatabaseSchema.CREATE_VECTOR_EXTENSION);   // must run first — CREATE_DOCUMENT_CHUNKS references the vector type
             st.execute(DatabaseSchema.CREATE_DOCUMENT_CHUNKS);
+            st.execute(DatabaseSchema.ADD_EMBEDDING_COLUMN);
         }
         System.out.println("[DB] Schema verified.");
     }
