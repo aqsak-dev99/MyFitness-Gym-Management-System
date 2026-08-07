@@ -57,6 +57,17 @@
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
+        <!-- Health check endpoint (/actuator/health). Only 'health' is
+             exposed publicly by default — everything else (metrics, env,
+             beans) stays hidden unless explicitly opted into, which
+             matters given this app has no request-level auth enforcement
+             yet. See DatabaseHealthIndicator for why the default health
+             check alone wasn't enough for this project specifically. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+
         <!-- NEW — JUnit 5 + Spring's own test support, replacing the old
              manually-declared junit-jupiter dependency. Spring Boot's
              parent manages the version for this automatically. -->
