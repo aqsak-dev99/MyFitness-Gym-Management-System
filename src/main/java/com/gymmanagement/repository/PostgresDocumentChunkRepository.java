@@ -2,6 +2,7 @@ package com.gymmanagement.repository;
 
 import com.gymmanagement.db.DatabaseManager;
 import com.gymmanagement.model.DocumentChunk;
+import com.gymmanagement.model.ScoredChunk;
 
 import org.springframework.stereotype.Repository;
 
@@ -80,36 +81,36 @@ public class PostgresDocumentChunkRepository implements DocumentChunkRepository 
         }
     }
 
+    // ── Milestone 5: now returns match quality, not just chunks ──────
+
     @Override
-    public List<DocumentChunk> findNearestByEmbedding(String documentId, float[] queryEmbedding, int topK) {
+    public List<ScoredChunk> findNearestByEmbedding(String documentId, float[] queryEmbedding, int topK) {
         // `<=>` is pgvector's cosine DISTANCE operator (0 = identical
-        // direction, 2 = opposite) — smaller means more similar, which is
-        // exactly why this ORDER BY needs ASC, not DESC. Chunks with a
-        // NULL embedding (uploaded before this migration existed) are
-        // excluded explicitly rather than relying on Postgres's default
-        // NULLS-LAST ordering to push them out of the LIMIT — that
-        // default behaviour is real, but leaving it implicit would make
-        // this query's intent (only ever compare chunks that actually
-        // have a vector) harder to read a year from now.
+        // direction, 2 = opposite) — smaller means more similar. The
+        // distance is now selected explicitly (AS distance) instead of
+        // only used inside ORDER BY, so DocumentQaService can actually
+        // see how relevant each match really was, not just its rank.
         String sql =
-            "SELECT chunk_id, document_id, chunk_index, content " +
+            "SELECT chunk_id, document_id, chunk_index, content, " +
+            "       embedding <=> ?::vector AS distance " +
             "FROM document_chunks " +
             "WHERE document_id = ? AND embedding IS NOT NULL " +
-            "ORDER BY embedding <=> ?::vector ASC " +
+            "ORDER BY distance ASC " +
             "LIMIT ?";
-        List<DocumentChunk> result = new ArrayList<>();
+        List<ScoredChunk> result = new ArrayList<>();
         try (PreparedStatement ps = conn().prepareStatement(sql)) {
-            ps.setString(1, documentId);
-            ps.setString(2, toVectorLiteral(queryEmbedding));
+            ps.setString(1, toVectorLiteral(queryEmbedding));
+            ps.setString(2, documentId);
             ps.setInt(3, topK);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    result.add(new DocumentChunk(
+                    DocumentChunk chunk = new DocumentChunk(
                         rs.getString("chunk_id"),
                         rs.getString("document_id"),
                         rs.getInt("chunk_index"),
                         rs.getString("content")
-                    ));
+                    );
+                    result.add(new ScoredChunk(chunk, rs.getDouble("distance")));
                 }
             }
         } catch (SQLException e) {
@@ -124,10 +125,7 @@ public class PostgresDocumentChunkRepository implements DocumentChunkRepository 
      * ::vector directly in the SQL above — deliberately not pulling in
      * the separate pgvector-java driver library, which would need its
      * own connection-level type registration on top of the plain JDBC
-     * DriverManager connection DatabaseManager already hands out. Every
-     * other query in this project is hand-written JDBC; a two-line
-     * string formatter is a smaller addition than a new dependency for
-     * one data type.
+     * DriverManager connection DatabaseManager already hands out.
      */
     private String toVectorLiteral(float[] embedding) {
         StringBuilder sb = new StringBuilder("[");

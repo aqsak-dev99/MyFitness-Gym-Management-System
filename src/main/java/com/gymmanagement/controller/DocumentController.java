@@ -48,10 +48,9 @@ public class DocumentController {
     }
 
     @PostMapping("/{documentId}/ask")
-    public AskAboutDocumentResponse askAboutDocument(@PathVariable String documentId,
-                                                      @RequestBody AskAboutDocumentRequest request) {
-        String answer = documentQaService.askAboutDocument(documentId, request.question());
-        return new AskAboutDocumentResponse(answer);
+    public DocumentQaService.DocumentAnswer askAboutDocument(@PathVariable String documentId,
+                                                              @RequestBody AskAboutDocumentRequest request) {
+        return documentQaService.askAboutDocument(documentId, request.question());
     }
 
     @DeleteMapping("/{documentId}")
@@ -62,5 +61,4 @@ public class DocumentController {
 
     public record UploadDocumentRequest(String filename, String content) {}
     public record AskAboutDocumentRequest(String question) {}
-    public record AskAboutDocumentResponse(String answer) {}
 }
