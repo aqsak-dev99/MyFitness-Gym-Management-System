@@ -11,6 +11,7 @@ public class Member extends Person {
     private LocalDate     registrationDate;
     private Membership    membership;
     private List<Payment> paymentHistory;
+    private String        fitnessGoal;   // nullable — not every member has set one
 
     public Member(String personId, String memberId, String name,
                   String email, String phone) {
@@ -27,6 +28,19 @@ public class Member extends Person {
     public LocalDate     getRegistrationDate() { return registrationDate; }
     public Membership    getMembership()       { return membership;       }
     public List<Payment> getPaymentHistory()   { return new ArrayList<>(paymentHistory); }
+    public String        getFitnessGoal()      { return fitnessGoal;      }
+
+    // ── fitness goal ───────────────────────────────────────
+    /**
+     * Free text, not a fixed enum, deliberately — a goal like "training
+     * for a 10k in the spring" gives an LLM genuine reasoning material
+     * (what actually helps that goal, given what's available) rather
+     * than a trivial one-to-one lookup a plain if/else could do just as
+     * well without needing AI at all.
+     */
+    public void setFitnessGoal(String fitnessGoal) {
+        this.fitnessGoal = fitnessGoal;
+    }
 
     // ── membership management ─────────────────────────────
     public void setMembership(Membership membership) {

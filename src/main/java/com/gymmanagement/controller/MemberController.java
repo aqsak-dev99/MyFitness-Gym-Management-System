@@ -89,6 +89,18 @@ public class MemberController {
     }
 
     /**
+     * PATCH /api/members/{memberId}/goal
+     * PATCH (not PUT) since this updates one field, not the whole
+     * resource. Returns the updated Member so the client can confirm
+     * the goal actually landed without a separate follow-up GET.
+     */
+    @PatchMapping("/{memberId}/goal")
+    public Member updateFitnessGoal(@PathVariable String memberId,
+                                    @RequestBody UpdateGoalRequest request) {
+        return memberService.updateFitnessGoal(memberId, request.fitnessGoal());
+    }
+
+    /**
      * A small "record" — Java's built-in way to declare an immutable data
      * holder in one line. This exists so the POST endpoint's JSON body
      * has a shape independent of the Member class itself — Member has
@@ -98,4 +110,6 @@ public class MemberController {
     public record MemberRegistrationRequest(
         String personId, String memberId, String name, String email, String phone
     ) {}
+
+    public record UpdateGoalRequest(String fitnessGoal) {}
 }

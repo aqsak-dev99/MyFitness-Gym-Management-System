@@ -129,6 +129,7 @@ public final class DatabaseManager {
             st.execute(DatabaseSchema.CREATE_VECTOR_EXTENSION);   // must run first — CREATE_DOCUMENT_CHUNKS references the vector type
             st.execute(DatabaseSchema.CREATE_DOCUMENT_CHUNKS);
             st.execute(DatabaseSchema.ADD_EMBEDDING_COLUMN);
+            st.execute(DatabaseSchema.ADD_FITNESS_GOAL_COLUMN);
         }
         System.out.println("[DB] Schema verified.");
     }

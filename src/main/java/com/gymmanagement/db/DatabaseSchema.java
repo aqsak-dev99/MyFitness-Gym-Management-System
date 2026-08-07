@@ -187,4 +187,14 @@ public final class DatabaseSchema {
     // IF NOT EXISTS makes it safe to run again on every future startup.
     public static final String ADD_EMBEDDING_COLUMN =
         "ALTER TABLE document_chunks ADD COLUMN IF NOT EXISTS embedding VECTOR(3072)";
+
+    // ── fitness_goal (Bootcamp Recommendations feature) ────
+    // Free text, nullable — existing members won't have one set until
+    // they explicitly provide it via PATCH /api/members/{id}/goal.
+    // Same ALTER-with-IF-NOT-EXISTS pattern as the embedding column
+    // above: the members table already exists in every environment
+    // this app runs in, so a plain CREATE TABLE can't add this column
+    // — only an explicit ALTER can.
+    public static final String ADD_FITNESS_GOAL_COLUMN =
+        "ALTER TABLE members ADD COLUMN IF NOT EXISTS fitness_goal TEXT";
 }

@@ -67,6 +67,16 @@ public class MemberService {
         return memberRepo.findAll();
     }
 
+    // ── fitness goal ───────────────────────────────────────
+
+    /** Sets or updates a member's stated fitness goal. */
+    public Member updateFitnessGoal(String memberId, String fitnessGoal) {
+        Member member = getMemberById(memberId);
+        member.setFitnessGoal(fitnessGoal);
+        memberRepo.save(member);
+        return member;
+    }
+
     // ── membership assignment ─────────────────────────────
 
     /**

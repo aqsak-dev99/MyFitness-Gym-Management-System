@@ -161,14 +161,15 @@ public class SqliteMemberRepository implements MemberRepository {
     private void upsertMember(Connection c, Member member) throws SQLException {
         String sql =
             "INSERT INTO members " +
-            "(member_id, person_id, name, email, phone, registration_date) " +
-            "VALUES (?, ?, ?, ?, ?, ?) " +
+            "(member_id, person_id, name, email, phone, registration_date, fitness_goal) " +
+            "VALUES (?, ?, ?, ?, ?, ?, ?) " +
             "ON CONFLICT(member_id) DO UPDATE SET " +
             "  person_id = excluded.person_id, " +
             "  name = excluded.name, " +
             "  email = excluded.email, " +
             "  phone = excluded.phone, " +
-            "  registration_date = excluded.registration_date";
+            "  registration_date = excluded.registration_date, " +
+            "  fitness_goal = excluded.fitness_goal";
         try (PreparedStatement ps = c.prepareStatement(sql)) {
             ps.setString(1, member.getMemberId());
             ps.setString(2, member.getPersonId());
@@ -176,6 +177,7 @@ public class SqliteMemberRepository implements MemberRepository {
             ps.setString(4, member.getEmail());
             ps.setString(5, member.getPhone());
             ps.setString(6, member.getRegistrationDate().toString());
+            ps.setString(7, member.getFitnessGoal());   // OK if null
             ps.executeUpdate();
         }
     }
@@ -258,10 +260,12 @@ public class SqliteMemberRepository implements MemberRepository {
         String    email            = rs.getString("email");
         String    phone            = rs.getString("phone");
         LocalDate registrationDate = LocalDate.parse(rs.getString("registration_date"));
+        String    fitnessGoal      = rs.getString("fitness_goal");   // null is fine
 
         Member member = new Member(personId, memberId, name, email, phone);
         // Override the auto-set registration date with the stored one
         setRegistrationDate(member, registrationDate);
+        member.setFitnessGoal(fitnessGoal);
 
         // Eagerly load membership
         Membership membership = loadMembership(memberId);
