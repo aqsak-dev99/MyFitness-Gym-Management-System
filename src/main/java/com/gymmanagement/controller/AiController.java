@@ -3,6 +3,8 @@ package com.gymmanagement.controller;
 import com.gymmanagement.service.BootcampRecommendationService;
 import com.gymmanagement.service.GeminiClient;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -25,7 +27,7 @@ public class AiController {
     }
 
     @PostMapping("/ask")
-    public AskResponse ask(@RequestBody AskRequest request) {
+    public AskResponse ask(@Valid @RequestBody AskRequest request) {
         String answer = geminiClient.ask(request.question());
         return new AskResponse(answer);
     }
@@ -43,7 +45,13 @@ public class AiController {
         return new RecommendationResponse(recommendation);
     }
 
-    public record AskRequest(String question) {}
+    /**
+     * @NotBlank here isn't just API hygiene — a blank question would
+     * still consume one of the shared 5-requests-per-minute Gemini
+     * quota slots for a call that could never produce anything useful.
+     * Rejecting it before it reaches GeminiClient protects that budget.
+     */
+    public record AskRequest(@NotBlank String question) {}
     public record AskResponse(String answer) {}
     public record RecommendationResponse(String recommendation) {}
 }

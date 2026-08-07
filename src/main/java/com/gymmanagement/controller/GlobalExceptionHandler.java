@@ -13,11 +13,15 @@ import com.gymmanagement.exception.UnauthorizedException;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.time.Instant;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * GlobalExceptionHandler — catches exceptions thrown anywhere in any
@@ -128,6 +132,37 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Map<String, Object>> handleInvalidInput(IllegalArgumentException e) {
         return buildResponse(HttpStatus.BAD_REQUEST, e.getMessage());
+    }
+
+    /**
+     * Thrown automatically by Spring when @Valid rejects a request body —
+     * one or more @NotBlank/@Email/@Positive (etc.) constraints failed
+     * before the request ever reached a controller method's own code.
+     *
+     * Gets its own, richer response shape (a fieldErrors map) rather than
+     * reusing buildResponse()'s single-message format, because a
+     * validation failure is fundamentally a LIST of problems, potentially
+     * one per field — "email: must be well-formed" and "phone: must not
+     * be blank" are both useful to know about in the same response,
+     * rather than only surfacing whichever field failed first.
+     */
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<Map<String, Object>> handleValidationErrors(MethodArgumentNotValidException e) {
+        Map<String, String> fieldErrors = e.getBindingResult().getFieldErrors().stream()
+            .collect(Collectors.toMap(
+                FieldError::getField,
+                fe -> fe.getDefaultMessage() != null ? fe.getDefaultMessage() : "invalid value",
+                (first, second) -> first   // keep the first message if a field somehow fails twice
+            ));
+
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("timestamp", Instant.now().toString());
+        body.put("status", HttpStatus.BAD_REQUEST.value());
+        body.put("error", HttpStatus.BAD_REQUEST.getReasonPhrase());
+        body.put("message", "Validation failed");
+        body.put("fieldErrors", fieldErrors);
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
     }
 
     /**

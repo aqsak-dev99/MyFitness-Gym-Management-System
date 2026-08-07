@@ -6,6 +6,9 @@ import com.gymmanagement.model.PartTimeStaff;
 import com.gymmanagement.model.Staff;
 import com.gymmanagement.service.TrainerService;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Positive;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -51,7 +54,7 @@ public class TrainerController {
 
     @PostMapping("/staff/full-time")
     @ResponseStatus(HttpStatus.CREATED)
-    public FullTimeStaff addFullTimeStaff(@RequestBody FullTimeStaffRequest request) {
+    public FullTimeStaff addFullTimeStaff(@Valid @RequestBody FullTimeStaffRequest request) {
         FullTimeStaff staff = new FullTimeStaff(
             request.personId(), request.staffId(), request.name(),
             request.email(), request.phone(), request.role(),
@@ -72,7 +75,7 @@ public class TrainerController {
 
     @PostMapping("/staff/part-time")
     @ResponseStatus(HttpStatus.CREATED)
-    public PartTimeStaff addPartTimeStaff(@RequestBody PartTimeStaffRequest request) {
+    public PartTimeStaff addPartTimeStaff(@Valid @RequestBody PartTimeStaffRequest request) {
         PartTimeStaff staff = new PartTimeStaff(
             request.personId(), request.staffId(), request.name(),
             request.email(), request.phone(), request.role(),
@@ -98,7 +101,7 @@ public class TrainerController {
 
     @PostMapping("/instructors")
     @ResponseStatus(HttpStatus.CREATED)
-    public Instructor addInstructor(@RequestBody InstructorRequest request) {
+    public Instructor addInstructor(@Valid @RequestBody InstructorRequest request) {
         Instructor instructor = new Instructor(
             request.personId(), request.staffId(), request.name(),
             request.email(), request.phone(), request.salary(),
@@ -111,17 +114,20 @@ public class TrainerController {
     // ── request DTOs ──────────────────────────────────────
 
     public record FullTimeStaffRequest(
-        String personId, String staffId, String name, String email,
-        String phone, String role, double salary, String workSchedule
+        @NotBlank String personId, @NotBlank String staffId, @NotBlank String name,
+        @NotBlank String email, @NotBlank String phone, @NotBlank String role,
+        @Positive double salary, @NotBlank String workSchedule
     ) {}
 
     public record PartTimeStaffRequest(
-        String personId, String staffId, String name, String email,
-        String phone, String role, double hourlyRate, int hoursPerWeek, String shiftPattern
+        @NotBlank String personId, @NotBlank String staffId, @NotBlank String name,
+        @NotBlank String email, @NotBlank String phone, @NotBlank String role,
+        @Positive double hourlyRate, @Positive int hoursPerWeek, @NotBlank String shiftPattern
     ) {}
 
     public record InstructorRequest(
-        String personId, String staffId, String name, String email,
-        String phone, double salary, String workSchedule, String specialisation
+        @NotBlank String personId, @NotBlank String staffId, @NotBlank String name,
+        @NotBlank String email, @NotBlank String phone, @Positive double salary,
+        @NotBlank String workSchedule, @NotBlank String specialisation
     ) {}
 }

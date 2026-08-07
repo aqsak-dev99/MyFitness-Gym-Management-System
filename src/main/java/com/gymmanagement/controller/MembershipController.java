@@ -7,6 +7,10 @@ import com.gymmanagement.model.membership.Membership;
 import com.gymmanagement.service.MembershipService;
 import com.gymmanagement.service.TrainerService;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -58,7 +62,7 @@ public class MembershipController {
 
     @PostMapping("/api/bootcamp-classes")
     @ResponseStatus(HttpStatus.CREATED)
-    public BootcampClass createBootcampClass(@RequestBody CreateBootcampClassRequest request) {
+    public BootcampClass createBootcampClass(@Valid @RequestBody CreateBootcampClassRequest request) {
         BootcampClass bc = new BootcampClass(
             request.classId(), request.type(), request.schedule(), request.maxCapacity()
         );
@@ -81,7 +85,7 @@ public class MembershipController {
     @PostMapping("/api/bootcamp-classes/{classId}/enrolments")
     @ResponseStatus(HttpStatus.CREATED)
     public Payment enrolInBootcamp(@PathVariable String classId,
-                                   @RequestBody EnrolmentRequest request) {
+                                   @Valid @RequestBody EnrolmentRequest request) {
         Payment payment = membershipService.enrolInBootcamp(request.memberId(), classId);
         membershipService.processPayment(payment);
         return payment;
@@ -109,7 +113,7 @@ public class MembershipController {
      */
     @PostMapping("/api/bootcamp-classes/{classId}/instructor")
     public BootcampClass assignInstructor(@PathVariable String classId,
-                                          @RequestBody AssignInstructorRequest request) {
+                                          @Valid @RequestBody AssignInstructorRequest request) {
         BootcampClass bc = membershipService.getBootcampById(classId);
         trainerService.assignInstructorToClass(request.instructorId(), bc);
         membershipService.addBootcampClass(bc);   // persist — see note above
@@ -161,10 +165,13 @@ public class MembershipController {
     // ── request DTOs ──────────────────────────────────────
 
     public record CreateBootcampClassRequest(
-        String classId, BootcampType type, String schedule, int maxCapacity
+        @NotBlank String classId,
+        @NotNull  BootcampType type,
+        @NotBlank String schedule,
+        @Positive int maxCapacity
     ) {}
 
-    public record EnrolmentRequest(String memberId) {}
+    public record EnrolmentRequest(@NotBlank String memberId) {}
 
-    public record AssignInstructorRequest(String instructorId) {}
+    public record AssignInstructorRequest(@NotBlank String instructorId) {}
 }

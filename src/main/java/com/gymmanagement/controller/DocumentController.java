@@ -5,6 +5,8 @@ import com.gymmanagement.model.DocumentChunk;
 import com.gymmanagement.service.DocumentQaService;
 import com.gymmanagement.service.DocumentService;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,7 +30,7 @@ public class DocumentController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Document upload(@RequestBody UploadDocumentRequest request) {
+    public Document upload(@Valid @RequestBody UploadDocumentRequest request) {
         return documentService.uploadDocument(request.filename(), request.content());
     }
 
@@ -49,7 +51,7 @@ public class DocumentController {
 
     @PostMapping("/{documentId}/ask")
     public DocumentQaService.DocumentAnswer askAboutDocument(@PathVariable String documentId,
-                                                              @RequestBody AskAboutDocumentRequest request) {
+                                                              @Valid @RequestBody AskAboutDocumentRequest request) {
         return documentQaService.askAboutDocument(documentId, request.question());
     }
 
@@ -59,6 +61,6 @@ public class DocumentController {
         documentService.deleteDocument(documentId);
     }
 
-    public record UploadDocumentRequest(String filename, String content) {}
-    public record AskAboutDocumentRequest(String question) {}
+    public record UploadDocumentRequest(@NotBlank String filename, @NotBlank String content) {}
+    public record AskAboutDocumentRequest(@NotBlank String question) {}
 }

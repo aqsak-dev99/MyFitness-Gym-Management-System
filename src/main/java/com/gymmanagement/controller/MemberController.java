@@ -3,6 +3,9 @@ package com.gymmanagement.controller;
 import com.gymmanagement.model.Member;
 import com.gymmanagement.service.MemberService;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -70,7 +73,7 @@ public class MemberController {
      */
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Member registerMember(@RequestBody MemberRegistrationRequest request) {
+    public Member registerMember(@Valid @RequestBody MemberRegistrationRequest request) {
         return memberService.registerMember(
             request.personId(), request.memberId(),
             request.name(), request.email(), request.phone()
@@ -96,7 +99,7 @@ public class MemberController {
      */
     @PatchMapping("/{memberId}/goal")
     public Member updateFitnessGoal(@PathVariable String memberId,
-                                    @RequestBody UpdateGoalRequest request) {
+                                    @Valid @RequestBody UpdateGoalRequest request) {
         return memberService.updateFitnessGoal(memberId, request.fitnessGoal());
     }
 
@@ -106,10 +109,20 @@ public class MemberController {
      * has a shape independent of the Member class itself — Member has
      * fields (like registrationDate) a client should never be allowed to
      * set directly on registration.
+     *
+     * @NotBlank rejects null AND whitespace-only strings — stricter than
+     * @NotNull, which a string of just spaces would still pass. @Email
+     * checks basic format, catching an obviously malformed address before
+     * it ever reaches the database, rather than only being caught the
+     * first time someone tries to actually send that member an email.
      */
     public record MemberRegistrationRequest(
-        String personId, String memberId, String name, String email, String phone
+        @NotBlank String personId,
+        @NotBlank String memberId,
+        @NotBlank String name,
+        @NotBlank @Email String email,
+        @NotBlank String phone
     ) {}
 
-    public record UpdateGoalRequest(String fitnessGoal) {}
+    public record UpdateGoalRequest(@NotBlank String fitnessGoal) {}
 }

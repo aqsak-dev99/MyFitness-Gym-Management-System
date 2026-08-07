@@ -68,6 +68,18 @@
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
 
+        <!-- Bean Validation (@NotBlank, @Email, @Positive, etc.) on
+             request DTOs. Moves "was this request even well-formed"
+             checking to the HTTP boundary, before it reaches a service
+             or domain constructor — domain constructors keep their own
+             checks too, as a second, independent guard that holds even
+             if something else ever constructs these objects without
+             going through a controller. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
+
         <!-- NEW — JUnit 5 + Spring's own test support, replacing the old
              manually-declared junit-jupiter dependency. Spring Boot's
              parent manages the version for this automatically. -->
