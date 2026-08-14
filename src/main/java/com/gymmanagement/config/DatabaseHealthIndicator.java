@@ -22,27 +22,43 @@ import java.sql.Connection;
  * successfully — even if the actual Postgres connection had silently
  * died, exactly like the real EOFException bug found earlier tonight.
  *
- * This directly closes that gap: it asks DatabaseManager for its live
- * connection and actually checks whether it's open, on every health
- * check call — so a dead connection now shows up as DOWN, not silently
- * accepted until the next real request fails.
+ * Originally checked connection.isClosed() — a genuine mistake, caught
+ * during a real recurrence of that same bug. isClosed() only reflects
+ * whether the connection was explicitly closed or has ALREADY triggered
+ * a fatal error the driver noticed — it doesn't actively test anything.
+ * The actual EOFException was only discovered mid-query, inside
+ * PGStream.receiveChar(), the moment a real request tried to use the
+ * connection. Right up until that instant, isClosed() would still have
+ * reported false, meaning the original version of this class shared the
+ * exact same blind spot as the bug it existed to catch.
+ *
+ * isValid(timeoutSeconds) is different: it actively round-trips to the
+ * database (a lightweight driver-level check) within the given timeout,
+ * rather than trusting a flag that hasn't been updated yet. This is
+ * what makes the health check genuinely predictive rather than another
+ * copy of the same false confidence.
  */
 @Component
 public class DatabaseHealthIndicator implements HealthIndicator {
+
+    // Kept short deliberately — this runs on every health check call,
+    // so it should fail fast rather than hang the check itself if the
+    // database is genuinely unreachable.
+    private static final int VALIDATION_TIMEOUT_SECONDS = 2;
 
     @Override
     public Health health() {
         try {
             Connection connection = DatabaseManager.getInstance().getConnection();
-            if (connection != null && !connection.isClosed()) {
+            if (connection != null && connection.isValid(VALIDATION_TIMEOUT_SECONDS)) {
                 return Health.up()
                     .withDetail("database", "PostgreSQL")
-                    .withDetail("status", "connection open")
+                    .withDetail("status", "connection verified")
                     .build();
             }
             return Health.down()
                 .withDetail("database", "PostgreSQL")
-                .withDetail("status", "connection closed")
+                .withDetail("status", "connection invalid or unresponsive")
                 .build();
         } catch (Exception e) {
             return Health.down()

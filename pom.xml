@@ -80,6 +80,49 @@
             <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
 
+        <!-- Swagger UI + OpenAPI spec, auto-generated from the existing
+             @RestController classes. springdoc-openapi (not the older
+             springfox, which doesn't support Spring Boot 3's Jakarta EE
+             namespace) scans every controller, endpoint, and request DTO
+             already in this project — including the @NotBlank/@Email/
+             @Positive annotations just added for Bean Validation, which
+             show up automatically as documented field constraints. No
+             version pinned to Spring Boot's own BOM here since springdoc
+             isn't part of it — 2.5.0 is a known-stable release compatible
+             with Spring Boot 3.2.x; if it doesn't resolve, that's a
+             one-line version bump, not a deeper problem. -->
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+            <version>2.5.0</version>
+        </dependency>
+
+        <!-- JJWT — signs and verifies JWTs for auth enforcement. Same
+             reasoning as using jbcrypt for password hashing: use a
+             trusted, well-established library for the actual
+             cryptographic operation, hand-roll the surrounding logic
+             (token generation, the filter that checks it) so it's
+             genuinely understood rather than framework magic. Split into
+             three artifacts as of 0.12.x — api is needed at compile
+             time, impl/jackson only at runtime. -->
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-api</artifactId>
+            <version>0.12.6</version>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-impl</artifactId>
+            <version>0.12.6</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-jackson</artifactId>
+            <version>0.12.6</version>
+            <scope>runtime</scope>
+        </dependency>
+
         <!-- NEW — JUnit 5 + Spring's own test support, replacing the old
              manually-declared junit-jupiter dependency. Spring Boot's
              parent manages the version for this automatically. -->

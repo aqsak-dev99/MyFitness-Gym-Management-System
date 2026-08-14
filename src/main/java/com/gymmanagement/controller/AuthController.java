@@ -3,6 +3,7 @@ package com.gymmanagement.controller;
 import com.gymmanagement.model.Role;
 import com.gymmanagement.model.User;
 import com.gymmanagement.service.AuthService;
+import com.gymmanagement.service.JwtService;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -14,41 +15,42 @@ import org.springframework.web.bind.annotation.*;
 /**
  * AuthController — the HTTP-facing layer for registration and login.
  *
- * Scope worth being explicit about: this makes register/login reachable
- * over HTTP and proves the credentials genuinely work end-to-end (hashing,
- * verification, the identical-error-on-failure behaviour). It does NOT
- * make this a protected API — login returns a User, but there's no
- * session or token yet linking that login to subsequent requests, so
- * nothing currently stops an unauthenticated request from reaching any
- * other endpoint. Wiring requireRole() into an actual request pipeline
- * (a token, a filter checking it on every request) is a separate, bigger
- * feature — real authentication middleware — not something to fold into
- * today's scope.
+ * Now issues a real JWT alongside the User on both endpoints — this is
+ * the other half of auth enforcement: JwtAuthenticationFilter checks
+ * incoming tokens on every other request, this is where a token first
+ * gets created. Registration auto-issues a token too (log in immediately
+ * after registering, not a separate second step).
  */
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
 
     private final AuthService authService;
+    private final JwtService  jwtService;
 
-    public AuthController(AuthService authService) {
+    public AuthController(AuthService authService, JwtService jwtService) {
         this.authService = authService;
+        this.jwtService  = jwtService;
     }
 
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
-    public User register(@Valid @RequestBody RegisterRequest request) {
-        return authService.register(
+    public LoginResponse register(@Valid @RequestBody RegisterRequest request) {
+        User user = authService.register(
             request.username(), request.password(), request.role(), request.linkedMemberId()
         );
+        String token = jwtService.generateToken(user);
+        return new LoginResponse(token, user);
     }
 
     @PostMapping("/login")
-    public User login(@Valid @RequestBody LoginRequest request) {
-        return authService.login(request.username(), request.password());
+    public LoginResponse login(@Valid @RequestBody LoginRequest request) {
+        User user = authService.login(request.username(), request.password());
+        String token = jwtService.generateToken(user);
+        return new LoginResponse(token, user);
     }
 
-    // ── request DTOs ──────────────────────────────────────
+    // ── request/response DTOs ──────────────────────────────
 
     /**
      * @Size(min = 6) on password is a genuine, deliberate product
@@ -66,4 +68,10 @@ public class AuthController {
     ) {}
 
     public record LoginRequest(@NotBlank String username, @NotBlank String password) {}
+
+    /**
+     * The token a client saves and sends back as
+     * "Authorization: Bearer <token>" on every subsequent request.
+     */
+    public record LoginResponse(String token, User user) {}
 }
