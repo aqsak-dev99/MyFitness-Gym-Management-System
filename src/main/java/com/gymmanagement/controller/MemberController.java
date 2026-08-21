@@ -1,6 +1,9 @@
 package com.gymmanagement.controller;
 
+import com.gymmanagement.config.RequireOwnership;
+import com.gymmanagement.config.RequireRole;
 import com.gymmanagement.model.Member;
+import com.gymmanagement.model.Role;
 import com.gymmanagement.service.MemberService;
 
 import jakarta.validation.Valid;
@@ -48,6 +51,7 @@ public class MemberController {
      * automatically — nothing here manually builds a JSON string.
      */
     @GetMapping
+    @RequireRole(Role.ADMIN)
     public List<Member> getAllMembers() {
         return memberService.getAllMembers();
     }
@@ -60,6 +64,7 @@ public class MemberController {
      * class) converts it into a proper 404 response instead of a raw 500.
      */
     @GetMapping("/{memberId}")
+    @RequireRole(Role.ADMIN)
     public Member getMemberById(@PathVariable String memberId) {
         return memberService.getMemberById(memberId);
     }
@@ -73,6 +78,7 @@ public class MemberController {
      */
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
+    @RequireRole(Role.ADMIN)
     public Member registerMember(@Valid @RequestBody MemberRegistrationRequest request) {
         return memberService.registerMember(
             request.personId(), request.memberId(),
@@ -87,6 +93,7 @@ public class MemberController {
      */
     @DeleteMapping("/{memberId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @RequireRole(Role.ADMIN)
     public void deleteMember(@PathVariable String memberId) {
         memberService.deleteMember(memberId);
     }
@@ -98,6 +105,7 @@ public class MemberController {
      * the goal actually landed without a separate follow-up GET.
      */
     @PatchMapping("/{memberId}/goal")
+    @RequireOwnership("memberId")
     public Member updateFitnessGoal(@PathVariable String memberId,
                                     @Valid @RequestBody UpdateGoalRequest request) {
         return memberService.updateFitnessGoal(memberId, request.fitnessGoal());

@@ -30,7 +30,7 @@ import java.util.List;
  * on requests that get rejected.
  */
 @Service
-public class GeminiClient {
+public class GeminiClient implements AiChatClient {
 
     /**
      * Model name is deliberately NOT hardcoded. Multiple current reports

@@ -32,11 +32,11 @@ public class BootcampRecommendationService {
 
     private final MemberService     memberService;
     private final MembershipService membershipService;
-    private final GeminiClient      geminiClient;
+    private final AiChatClient      geminiClient;
 
     public BootcampRecommendationService(MemberService memberService,
                                          MembershipService membershipService,
-                                         GeminiClient geminiClient) {
+                                         AiChatClient geminiClient) {
         this.memberService     = memberService;
         this.membershipService = membershipService;
         this.geminiClient      = geminiClient;

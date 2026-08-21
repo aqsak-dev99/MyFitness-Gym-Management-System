@@ -15,10 +15,15 @@ import java.util.UUID;
 
 /**
  * DocumentService — Milestone 1 (upload/retrieve), Milestone 2
- * (automatic chunking), and now Milestone 4 (automatic embedding) all
+ * (automatic chunking), and Milestone 4 (automatic embedding) all
  * happen inside one uploadDocument() call. Retrieval logic itself lives
  * in DocumentQaService, not here — this class's job stops at "the
  * document is stored, chunked, and every chunk has a vector."
+ *
+ * Depends on AiEmbeddingClient (interface), not the concrete
+ * GeminiEmbeddingClient — same reasoning as DocumentQaService and
+ * BootcampRecommendationService: lets a test fake stand in without
+ * ever needing GEMINI_API_KEY set.
  */
 @Service
 public class DocumentService {
@@ -26,12 +31,12 @@ public class DocumentService {
     private final DocumentRepository      documentRepo;
     private final DocumentChunkRepository chunkRepo;
     private final ChunkingService         chunkingService;
-    private final GeminiEmbeddingClient   embeddingClient;
+    private final AiEmbeddingClient       embeddingClient;
 
     public DocumentService(DocumentRepository documentRepo,
                            DocumentChunkRepository chunkRepo,
                            ChunkingService chunkingService,
-                           GeminiEmbeddingClient embeddingClient) {
+                           AiEmbeddingClient embeddingClient) {
         this.documentRepo    = documentRepo;
         this.chunkRepo       = chunkRepo;
         this.chunkingService = chunkingService;

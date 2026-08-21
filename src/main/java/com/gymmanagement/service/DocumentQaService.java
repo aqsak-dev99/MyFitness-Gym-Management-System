@@ -46,13 +46,13 @@ public class DocumentQaService {
     private static final double MAX_RELEVANT_DISTANCE = 0.45;
 
     private final DocumentChunkRepository chunkRepo;
-    private final GeminiEmbeddingClient   embeddingClient;
-    private final GeminiClient            geminiClient;
+    private final AiEmbeddingClient embeddingClient;
+    private final AiChatClient      geminiClient;
     private final DocumentService         documentService;
 
     public DocumentQaService(DocumentChunkRepository chunkRepo,
-                             GeminiEmbeddingClient embeddingClient,
-                             GeminiClient geminiClient,
+                             AiEmbeddingClient embeddingClient,
+                             AiChatClient geminiClient,
                              DocumentService documentService) {
         this.chunkRepo       = chunkRepo;
         this.embeddingClient = embeddingClient;

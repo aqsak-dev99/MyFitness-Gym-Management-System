@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
  * down one combined 5/minute budget rather than each getting their own.
  */
 @Service
-public class GeminiEmbeddingClient {
+public class GeminiEmbeddingClient implements AiEmbeddingClient {
 
     private static final String DEFAULT_MODEL = "gemini-embedding-001";
 
