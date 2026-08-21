@@ -3,6 +3,7 @@ package com.gymmanagement.controller;
 import com.gymmanagement.config.RequireOwnership;
 import com.gymmanagement.service.AiChatClient;
 import com.gymmanagement.service.BootcampRecommendationService;
+import com.gymmanagement.service.BootcampToolCallingClient;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -11,26 +12,25 @@ import org.springframework.web.bind.annotation.*;
 /**
  * AiController — every general-purpose (non-document) AI endpoint lives
  * here. /ask proved the Gemini connection itself works; the bootcamp
- * recommendation endpoint is the final feature on the AI roadmap, built
- * on that same proven foundation.
- *
- * Depends on AiChatClient (interface), not the concrete GeminiClient —
- * this was actually a loose end from the earlier interface-extraction
- * work (BootcampRecommendationService already used the interface; this
- * class hadn't been updated to match), fixed here as necessary plumbing
- * for testing the ownership check below with a fake, not a live key.
+ * recommendation endpoint reuses that same foundation with manually-
+ * gathered context; /bootcamp-classes/ask is the new one — the model
+ * decides for itself when it needs real data, via an actual tool call,
+ * rather than everything being pre-stuffed into the prompt.
  */
 @RestController
 @RequestMapping("/api/ai")
 public class AiController {
 
     private final AiChatClient                  geminiClient;
-    private final BootcampRecommendationService recommendationService;
+    private final BootcampRecommendationService  recommendationService;
+    private final BootcampToolCallingClient      toolCallingService;
 
     public AiController(AiChatClient geminiClient,
-                        BootcampRecommendationService recommendationService) {
+                        BootcampRecommendationService recommendationService,
+                        BootcampToolCallingClient toolCallingService) {
         this.geminiClient          = geminiClient;
         this.recommendationService = recommendationService;
+        this.toolCallingService    = toolCallingService;
     }
 
     @PostMapping("/ask")
@@ -40,12 +40,6 @@ public class AiController {
     }
 
     /**
-     * GET, not POST — this doesn't create or modify anything (a
-     * recommendation isn't stored), it only reads existing member/class
-     * data and asks Gemini to reason over it. That makes GET the more
-     * semantically correct choice, even though it triggers an external
-     * API call under the hood.
-     *
      * @RequireOwnership("memberId") — a member can only get their own
      * recommendation; ADMIN can look up anyone's.
      */
@@ -54,6 +48,19 @@ public class AiController {
     public RecommendationResponse getBootcampRecommendation(@PathVariable String memberId) {
         String recommendation = recommendationService.recommendBootcamp(memberId);
         return new RecommendationResponse(recommendation);
+    }
+
+    /**
+     * The new tool-calling endpoint. No ownership/role restriction —
+     * this only reads publicly-visible bootcamp class data, the same
+     * information GET /api/bootcamp-classes already exposes to any
+     * authenticated user; the difference here is HOW the answer gets
+     * built, not what data is accessible.
+     */
+    @PostMapping("/bootcamp-classes/ask")
+    public AskResponse askAboutBootcampClasses(@Valid @RequestBody AskRequest request) {
+        String answer = toolCallingService.askAboutBootcampClasses(request.question());
+        return new AskResponse(answer);
     }
 
     /**

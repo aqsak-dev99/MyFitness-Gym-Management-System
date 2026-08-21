@@ -9,6 +9,7 @@ import com.gymmanagement.repository.FakeMemberRepository;
 import com.gymmanagement.repository.MemberRepository;
 import com.gymmanagement.service.BootcampRecommendationService;
 import com.gymmanagement.service.FakeAiChatClient;
+import com.gymmanagement.service.FakeBootcampToolCallingClient;
 import com.gymmanagement.service.MemberService;
 import com.gymmanagement.service.MembershipService;
 
@@ -72,7 +73,8 @@ class RoleAuthorizationInterceptorTest {
         MembershipService membershipService = new MembershipService(memberRepo, bootcampRepo);
         BootcampRecommendationService recommendationService =
             new BootcampRecommendationService(memberService, membershipService, new FakeAiChatClient());
-        AiController aiController = new AiController(new FakeAiChatClient(), recommendationService);
+        AiController aiController = new AiController(
+            new FakeAiChatClient(), recommendationService, new FakeBootcampToolCallingClient());
 
         Method recommendationMethod = Objects.requireNonNull(AiController.class.getMethod(
             "getBootcampRecommendation", String.class));
