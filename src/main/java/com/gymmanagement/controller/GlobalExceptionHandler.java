@@ -9,6 +9,7 @@ import com.gymmanagement.exception.DuplicateUserException;
 import com.gymmanagement.exception.InvalidCredentialsException;
 import com.gymmanagement.exception.MemberNotFoundException;
 import com.gymmanagement.exception.PaymentFailedException;
+import com.gymmanagement.exception.SchedulingConflictException;
 import com.gymmanagement.exception.UnauthorizedException;
 
 import org.springframework.http.HttpStatus;
@@ -89,6 +90,11 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ClassFullException.class)
     public ResponseEntity<Map<String, Object>> handleClassFull(ClassFullException e) {
+        return buildResponse(HttpStatus.CONFLICT, e.getMessage());
+    }
+
+    @ExceptionHandler(SchedulingConflictException.class)
+    public ResponseEntity<Map<String, Object>> handleSchedulingConflict(SchedulingConflictException e) {
         return buildResponse(HttpStatus.CONFLICT, e.getMessage());
     }
 

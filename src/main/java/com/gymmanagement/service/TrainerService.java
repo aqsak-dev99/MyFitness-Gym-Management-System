@@ -1,6 +1,7 @@
 package com.gymmanagement.service;
 
 import com.gymmanagement.exception.MemberNotFoundException;
+import com.gymmanagement.exception.SchedulingConflictException;
 import com.gymmanagement.model.FullTimeStaff;
 import com.gymmanagement.model.GymClass;
 import com.gymmanagement.model.Instructor;
@@ -95,8 +96,35 @@ public class TrainerService {
      * Assign an instructor to a gym class.
      * Both sides of the relationship are updated atomically.
      */
+    /**
+     * Assign an instructor to a gym class. Rejects the assignment if the
+     * instructor is already teaching a DIFFERENT class at the exact same
+     * schedule string — a genuine, real scheduling conflict, not just a
+     * data-integrity nicety. Excludes the class being assigned itself
+     * from this check (matched by classId, not object identity) so a
+     * repeat call assigning the same instructor to the same class stays
+     * the safe no-op it already was via Instructor.assignToClass()'s own
+     * idempotency guard, rather than being newly (and wrongly) treated
+     * as a conflict with itself.
+     *
+     * Deliberately exact-string comparison, not semantic day/time
+     * parsing — schedule is free text ("Mon/Wed 07:00"), and building
+     * real time-overlap logic would be a much larger feature than this
+     * check calls for. Matches the same granularity the data already has.
+     */
     public void assignInstructorToClass(String instructorId, GymClass gymClass) {
         Instructor instructor = getInstructorById(instructorId);
+
+        boolean hasConflict = instructor.getAssignedClasses().stream()
+            .filter(existingClass -> !existingClass.getClassId().equals(gymClass.getClassId()))
+            .anyMatch(existingClass -> existingClass.getSchedule().equals(gymClass.getSchedule()));
+
+        if (hasConflict) {
+            throw new SchedulingConflictException(
+                "Instructor " + instructor.getName() + " is already teaching a class at \"" +
+                gymClass.getSchedule() + "\" — cannot assign to another class at the same time.");
+        }
+
         gymClass.assignInstructor(instructor);
         instructor.assignToClass(gymClass);
     }

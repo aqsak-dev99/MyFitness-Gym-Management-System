@@ -1,6 +1,7 @@
 package com.gymmanagement.service;
 
 import com.gymmanagement.exception.MemberNotFoundException;
+import com.gymmanagement.exception.SchedulingConflictException;
 import com.gymmanagement.model.FullTimeStaff;
 import com.gymmanagement.model.GymClass;
 import com.gymmanagement.model.Instructor;
@@ -13,6 +14,7 @@ import org.junit.jupiter.api.Test;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -132,5 +134,53 @@ class TrainerServiceTest {
 
         assertEquals(null, spinClass.getInstructor());
         assertFalse(carlos.getAssignedClasses().contains(spinClass));
+    }
+
+    // ── scheduling conflicts ────────────────────────────────
+
+    /** The core case this feature exists to prevent. */
+    @Test
+    void assigningInstructorToTwoClassesWithSameScheduleThrows() {
+        Instructor carlos = instructor("INS001", "Carlos");
+        trainerService.addInstructor(carlos);
+        GymClass spinClass = new GymClass("GC001", "Spin Class", "Tue 18:00", 15);
+        GymClass yogaClass = new GymClass("GC002", "Yoga Class", "Tue 18:00", 15);   // same schedule
+        trainerService.assignInstructorToClass("INS001", spinClass);
+
+        assertThrows(SchedulingConflictException.class, () ->
+            trainerService.assignInstructorToClass("INS001", yogaClass));
+    }
+
+    @Test
+    void assigningInstructorToTwoClassesWithDifferentSchedulesSucceeds() {
+        Instructor carlos = instructor("INS001", "Carlos");
+        trainerService.addInstructor(carlos);
+        GymClass spinClass = new GymClass("GC001", "Spin Class", "Tue 18:00", 15);
+        GymClass yogaClass = new GymClass("GC002", "Yoga Class", "Thu 18:00", 15);   // different day
+        trainerService.assignInstructorToClass("INS001", spinClass);
+
+        trainerService.assignInstructorToClass("INS001", yogaClass);
+
+        assertTrue(carlos.getAssignedClasses().contains(spinClass));
+        assertTrue(carlos.getAssignedClasses().contains(yogaClass));
+    }
+
+    /**
+     * Regression guard: the conflict check must not break the existing
+     * idempotent re-assignment behaviour (assigning the same instructor
+     * to the same class twice was always meant to be a safe no-op, via
+     * Instructor.assignToClass()'s own contains() guard). Without
+     * excluding the class itself from the conflict comparison, this
+     * would incorrectly throw — a class always shares its own schedule
+     * with itself.
+     */
+    @Test
+    void reassigningInstructorToTheSameClassDoesNotThrow() {
+        Instructor carlos = instructor("INS001", "Carlos");
+        trainerService.addInstructor(carlos);
+        GymClass spinClass = new GymClass("GC001", "Spin Class", "Tue 18:00", 15);
+        trainerService.assignInstructorToClass("INS001", spinClass);
+
+        assertDoesNotThrow(() -> trainerService.assignInstructorToClass("INS001", spinClass));
     }
 }
