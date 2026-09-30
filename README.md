@@ -123,17 +123,7 @@ Frontend runs on `http://localhost:5173` and talks to `localhost:8080` by defaul
 ```bash
 mvn clean package
 ```
-120 tests covering service-layer business logic, repository behavior, and billing/membership edge cases.
-
----
-
-## Known Limitations
-
-Being direct about what isn't done, rather than implying otherwise:
-
-- **No frontend test suite** — no Jest/React Testing Library coverage yet. Backend logic is thoroughly tested; frontend correctness has so far relied on manual QA across both roles and both themes.
-- **Render free tier** — the backend cold-starts after inactivity; not a fix so much as an accepted trade-off for a portfolio deployment.
-- **Payment receipt PDFs** — considered and deliberately deferred. Building it properly would have required a new PDF-generation dependency and new backend surface with real ownership-enforcement logic; rather than ship something half-considered, it was left out.
+119 tests covering service-layer business logic, repository behavior, and billing/membership edge cases.
 
 ---
 
