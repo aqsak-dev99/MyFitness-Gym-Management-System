@@ -62,9 +62,11 @@ function AppRoutes() {
           <Route path="/" element={<Dashboard />} />
           <Route path="/bootcamp-classes" element={<BootcampClasses />} />
           <Route path="/ai-assistant" element={<AiAssistant />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/membership" element={<Membership />} />
-          <Route path="/my-goal" element={<MyGoal />} />
+          <Route element={<RoleRoute allowedRoles={['MEMBER']} />}>
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/membership" element={<Membership />} />
+            <Route path="/my-goal" element={<MyGoal />} />
+          </Route>
 
           <Route element={<RoleRoute allowedRoles={['ADMIN']} />}>
             <Route path="/members" element={<AdminMembers />} />
