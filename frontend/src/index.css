@@ -1,0 +1,210 @@
+/* ── Global theme tokens ────────────────────────────────
+   Dark is the default/primary theme (no [data-theme] needed).
+   [data-theme="light"] overrides every color value below —
+   ThemeContext sets this attribute on <html> and persists the
+   choice to localStorage. Spacing/typography/shape tokens are
+   NOT theme-dependent, so they're defined once, outside the
+   theme-conditional block.
+
+   --dash-* names below are backward-compatible aliases pointing
+   at these new semantic tokens — every existing component that
+   already references --dash-accent-green, --dash-text, etc. gets
+   the new purple-based palette and full light/dark support
+   automatically, with zero changes needed in those files. New
+   components should reference the --color-* names directly. */
+:root {
+  /* Dark theme (default) */
+  --color-bg: #07070d;
+  --color-bg-elevated: #0f0e1a;
+  --color-surface: rgba(255, 255, 255, 0.055);
+  --color-surface-strong: rgba(255, 255, 255, 0.08);
+  --color-surface-hover: rgba(255, 255, 255, 0.09);
+  --color-border: rgba(255, 255, 255, 0.10);
+  --color-border-strong: rgba(255, 255, 255, 0.22);
+  --color-text-primary: #f5f5f7;
+  --color-text-secondary: rgba(245, 245, 247, 0.58);
+
+  --color-primary: #9b5cf6;
+  --color-primary-strong: #7c3aed;
+  --color-primary-soft: rgba(155, 92, 246, 0.16);
+
+  --color-ai-accent: #f0629c;
+  --color-ai-accent-soft: rgba(240, 98, 156, 0.16);
+  --color-bootcamp-accent: #4ab8f7;
+  --color-bootcamp-accent-soft: rgba(74, 184, 247, 0.16);
+  --color-goal-accent: #f5a623;
+  --color-goal-accent-soft: rgba(245, 166, 35, 0.16);
+
+  /* Dedicated to PageShell's page-background glow specifically — not
+     shared with badges/buttons/etc, which reuse the -soft tokens above
+     for a completely different purpose (small accent fills, not a
+     large atmospheric wash). Kept identical to dark mode's existing
+     visual result here; only light mode's values below actually change. */
+  --color-page-glow-primary: rgba(155, 92, 246, 0.16);
+  --color-page-glow-ai: rgba(240, 98, 156, 0.16);
+  --color-page-glow-bootcamp: rgba(74, 184, 247, 0.16);
+  --color-cyan-accent: #67e8f9;
+  --color-cyan-accent-soft: rgba(103, 232, 249, 0.14);
+  --color-danger: #e2766a;
+  --color-danger-soft: rgba(226, 118, 106, 0.15);
+  --color-success: #34c759;
+  --color-success-soft: rgba(52, 199, 89, 0.15);
+
+  --color-shadow: rgba(0, 0, 0, 0.45);
+  --color-glow-primary: rgba(155, 92, 246, 0.35);
+
+  /* Backward-compatible aliases — existing components unchanged */
+  --dash-bg-deep: var(--color-bg);
+  --dash-bg-mid: var(--color-bg-elevated);
+  --dash-glass-bg: var(--color-surface);
+  --dash-glass-bg-strong: var(--color-surface-strong);
+  --dash-glass-border: var(--color-border);
+  --dash-glass-edge: var(--color-border-strong);
+  --dash-text: var(--color-text-primary);
+  --dash-text-muted: var(--color-text-secondary);
+  --dash-accent-green: var(--color-primary);
+  --dash-accent-green-dim: var(--color-primary-soft);
+  --dash-accent-purple: var(--color-primary);
+  --dash-accent-purple-dim: var(--color-primary-soft);
+  --dash-accent-pink: var(--color-ai-accent);
+  --dash-accent-pink-dim: var(--color-ai-accent-soft);
+  --dash-accent-blue: var(--color-bootcamp-accent);
+  --dash-accent-blue-dim: var(--color-bootcamp-accent-soft);
+  --dash-accent-gold: var(--color-goal-accent);
+  --dash-accent-gold-dim: var(--color-goal-accent-soft);
+  --dash-accent-red: var(--color-danger);
+  --dash-accent-red-dim: var(--color-danger-soft);
+
+  /* Non-theme-dependent tokens */
+  --dash-radius-lg: 22px;
+  --dash-radius-md: 14px;
+  --dash-blur: 26px;
+  --dash-space-1: 0.25rem; --dash-space-2: 0.5rem; --dash-space-3: 0.75rem;
+  --dash-space-4: 1rem; --dash-space-5: 1.5rem; --dash-space-6: 2rem; --dash-space-8: 3rem;
+
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-size-sm: 0.875rem;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.5rem;
+  --font-size-2xl: 2rem;
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* Light theme — deliberately designed, not a dark-mode inversion.
+   Warm off-white base, soft lavender surfaces, dark navy text,
+   the same purple/pink/blue/amber/cyan hue family but re-balanced
+   for contrast on a light background. */
+[data-theme="light"] {
+  --color-bg: #f7f5fb;
+  --color-bg-elevated: #ffffff;
+  --color-surface: #ffffff;
+  --color-surface-strong: #ffffff;
+  --color-surface-hover: #f3effa;
+  --color-border: #e4dff0;
+  --color-border-strong: #cdbdf0;
+  --color-text-primary: #1e1b2e;
+  --color-text-secondary: #5b5470;
+
+  --color-primary: #7c3aed;
+  --color-primary-strong: #6425c9;
+  --color-primary-soft: rgba(124, 58, 237, 0.10);
+
+  --color-ai-accent: #db3384;
+  --color-ai-accent-soft: rgba(219, 51, 132, 0.10);
+  --color-bootcamp-accent: #1e88d8;
+  --color-bootcamp-accent-soft: rgba(30, 136, 216, 0.10);
+  --color-goal-accent: #d9820a;
+  --color-goal-accent-soft: rgba(217, 130, 10, 0.10);
+
+  /* Same colors as dark mode, deliberately stronger alpha — a wash this
+     faint against a near-white base is barely perceptible, the actual
+     reason light mode was reading as "just white" despite the gradient
+     rule already being there and correctly wired. */
+  --color-page-glow-primary: rgba(124, 58, 237, 0.24);
+  --color-page-glow-ai: rgba(219, 51, 132, 0.20);
+  --color-page-glow-bootcamp: rgba(30, 136, 216, 0.20);
+  --color-cyan-accent: #0e9cb0;
+  --color-cyan-accent-soft: rgba(14, 156, 176, 0.10);
+  --color-danger: #c1121f;
+  --color-danger-soft: rgba(193, 18, 31, 0.08);
+  --color-success: #1a8f3c;
+  --color-success-soft: rgba(26, 143, 60, 0.10);
+
+  --color-shadow: rgba(30, 20, 60, 0.12);
+  --color-glow-primary: rgba(124, 58, 237, 0.18);
+}
+
+/* ── Reset ──────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--font-size-base);
+  color: var(--color-text-primary);
+  background-color: var(--color-bg);
+  -webkit-font-smoothing: antialiased;
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+h1, h2, h3, h4, p {
+  margin: 0;
+}
+
+button, input, select, textarea {
+  font-family: inherit;
+  font-size: inherit;
+}
+
+a {
+  color: var(--color-primary);
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+
+/* ── Layout helpers used across pages ──────────────────
+   Small, generic utility classes — not a utility framework
+   like Tailwind, just the handful of layout patterns every
+   page in this app genuinely needs, kept in one place
+   instead of repeated inline. */
+.page-container {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: var(--space-6) var(--space-4);
+}
+
+.page-container--wide {
+  max-width: 960px;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--dash-space-4);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

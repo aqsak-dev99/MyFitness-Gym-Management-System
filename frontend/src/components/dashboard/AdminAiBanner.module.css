@@ -1,0 +1,104 @@
+.banner {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--dash-space-4);
+  padding: var(--dash-space-4) var(--dash-space-5);
+  background: linear-gradient(135deg, var(--color-primary-soft), var(--color-ai-accent-soft));
+  border: 1px solid var(--color-border);
+  border-radius: var(--dash-radius-lg);
+  text-decoration: none;
+  overflow: visible;
+  transition: border-color 0.15s ease;
+}
+.banner:hover { text-decoration: none; border-color: var(--color-primary); }
+
+.left { display: flex; align-items: center; gap: var(--dash-space-3); flex: 1; min-width: 0; }
+.title { display: block; font-size: 0.92rem; font-weight: 700; color: var(--color-text-primary); }
+.sub { display: block; font-size: 0.78rem; color: var(--color-text-secondary); margin-top: 2px; }
+
+.cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.55rem 1.1rem;
+  border-radius: 10px;
+  background: var(--color-primary);
+  color: white;
+  font-size: 0.82rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.robotWrap {
+  position: absolute;
+  bottom: -6px;
+  right: 24px;
+  width: 90px;
+  display: none;
+}
+.robotImg {
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(0 10px 20px rgba(155, 92, 246, 0.35));
+  transition: transform 0.18s ease;
+}
+.robotWrap:hover .robotImg {
+  transform: translateY(-3px) scale(1.04);
+}
+.speechBubble {
+  position: absolute;
+  bottom: 100%;
+  right: -10px;
+  margin-bottom: 10px;
+  width: 190px;
+  padding: 0.6rem 0.8rem;
+  background: var(--color-surface-strong, var(--color-surface));
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  font-size: 0.7rem;
+  line-height: 1.4;
+  color: var(--color-text-primary);
+  box-shadow: 0 10px 24px rgba(0,0,0,0.25);
+  /* Hidden by default — hover-revealed below. The banner's own inline
+     text already says essentially the same thing, so this isn't load-
+     bearing information; it's a small discovery moment for the mascot,
+     not a permanent fixture competing for space on the dashboard. */
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(6px);
+  transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s;
+  pointer-events: none;
+}
+.robotWrap:hover .speechBubble {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+@media (min-width: 900px) {
+  .robotWrap { display: block; }
+  .banner {
+    padding-right: 130px;
+    /* Real fix for the mascot/speech-bubble overlapping the panel
+       above it (flagged, unaddressed, for a while): the bubble is
+       position:absolute + bottom:100%, so it always floats above the
+       banner's own top edge with no relationship to page flow — it
+       was never reserving space for itself. This margin reserves
+       real room for it: bubble height (~55px) + its own 10px gap
+       from the robot + a safety buffer, only at the breakpoint where
+       the mascot is actually shown at all.
+    */
+    /* Consolidated here as the single, authoritative source for this
+       spacing — a duplicate rule previously lived in Dashboard.module.css
+       (.adminBottomGrid + *), which silently competed with this one at
+       equal CSS specificity across two different files. That ambiguity,
+       not just an insufficient value, was why the bubble still overlapped
+       Quick Actions on the real 3-column layout (whose shortest column
+       sits closest to the mascot) despite a fix already existing.
+       130px verified against the actual bubble content (~5 lines at
+       0.7rem within a 190px-wide box, plus its own 10px gap from the
+       robot), not the shorter placeholder text this was first sized for. */
+    margin-top: 130px;
+  }
+}

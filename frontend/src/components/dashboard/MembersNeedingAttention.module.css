@@ -1,0 +1,37 @@
+.card { display: flex; flex-direction: column; }
+
+.header { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--dash-space-4); }
+.eyebrow { font-size: 0.85rem; font-weight: 700; color: var(--color-text-primary); }
+.viewAll { display: inline-flex; align-items: center; gap: 0.3rem; color: var(--color-primary); font-size: 0.8rem; font-weight: 700; text-decoration: none; }
+.viewAll:hover { text-decoration: underline; }
+
+.empty { color: var(--color-text-secondary); font-size: 0.88rem; margin: 0; }
+
+.list { display: flex; flex-direction: column; gap: var(--dash-space-2); }
+
+.groupBanner {
+  padding: var(--dash-space-3);
+  background: var(--color-danger-soft);
+  border: 1px solid rgba(226, 118, 106, 0.3);
+  border-radius: var(--dash-radius-md);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 2px;
+}
+.frozenBanner { background: var(--color-bootcamp-accent-soft); border-color: rgba(74, 184, 247, 0.3); margin-top: var(--dash-space-2); }
+.groupTitle { font-weight: 800; font-size: 0.88rem; color: var(--color-text-primary); }
+.groupSub { font-size: 0.78rem; color: var(--color-text-secondary); }
+
+.row { display: flex; align-items: center; gap: var(--dash-space-3); padding: var(--dash-space-2) var(--dash-space-3); }
+.avatar {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: var(--color-primary-soft); color: var(--color-primary);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.72rem; font-weight: 800; flex-shrink: 0;
+}
+.rowInfo { flex: 1; display: flex; flex-direction: column; }
+.name { font-size: 0.85rem; font-weight: 700; color: var(--color-text-primary); }
+.status { font-size: 0.75rem; color: var(--color-danger); }
+.statusFrozen { font-size: 0.75rem; color: var(--color-bootcamp-accent); }
+.memberId { font-size: 0.72rem; color: var(--color-text-secondary); font-weight: 600; }

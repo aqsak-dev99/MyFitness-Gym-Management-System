@@ -1,0 +1,162 @@
+.wrapper {
+  min-height: 100vh;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-sans);
+  background:
+    radial-gradient(ellipse 900px 600px at 50% -10%, rgba(155, 92, 246, 0.16), transparent 60%),
+    radial-gradient(ellipse 800px 500px at 50% 110%, rgba(240, 98, 156, 0.10), transparent 60%),
+    linear-gradient(180deg, #0f0e1a, #050409 70%);
+}
+
+.starsLayer { position: absolute; inset: 0; pointer-events: none; }
+.mountainLayer { position: absolute; bottom: 0; left: 0; width: 100%; height: 30vh; pointer-events: none; }
+
+.equipLeft, .equipRight {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 90px;
+  display: none;
+}
+.equipLeft { left: 3%; }
+.equipRight { right: 3%; }
+
+.content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 2rem;
+  text-align: center;
+}
+
+.logoMark { margin-bottom: 0.2rem; }
+
+.wordmark {
+  color: #ffffff;
+  font-size: 2.6rem;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  margin: 0;
+}
+.wordmarkAccent {
+  background: linear-gradient(90deg, #9b5cf6, #f0629c, #f5a623);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.tagline {
+  color: rgba(245, 245, 247, 0.6);
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.taglineRule {
+  width: 60px;
+  height: 3px;
+  border-radius: 2px;
+  margin: 0.4rem 0 1.2rem;
+  background: linear-gradient(90deg, #9b5cf6, #f5a623);
+}
+
+.robotWrap {
+  position: relative;
+  width: 190px;
+  height: 190px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.4rem;
+}
+
+.robotRing {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  background:
+    linear-gradient(#0f0e1a, #0f0e1a) padding-box,
+    linear-gradient(135deg, #9b5cf6, #f5a623) border-box;
+  opacity: 0.55;
+  animation: ringPulse 3s ease-in-out infinite;
+}
+@keyframes ringPulse {
+  0%, 100% { opacity: 0.45; transform: scale(1); }
+  50%      { opacity: 0.7; transform: scale(1.03); }
+}
+
+.robotImg {
+  position: relative;
+  width: 145px;
+  height: auto;
+  filter: drop-shadow(0 0 22px rgba(155, 92, 246, 0.5)) drop-shadow(0 0 14px rgba(240, 98, 156, 0.35));
+  animation: robotFloat 3.6s ease-in-out infinite;
+}
+@keyframes robotFloat {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-8px); }
+}
+
+.loadingLabel {
+  color: #b57bf5;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  margin: 0 0 0.6rem;
+}
+
+.progressTrack {
+  width: 240px;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+.progressFill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #9b5cf6, #f0629c, #f5a623);
+  box-shadow: 0 0 12px rgba(155, 92, 246, 0.6);
+  animation: fillProgress 1.3s ease forwards;
+}
+@keyframes fillProgress {
+  0%   { width: 8%; }
+  100% { width: 100%; }
+}
+
+.loadingSub {
+  color: rgba(245, 245, 247, 0.45);
+  font-size: 0.82rem;
+  margin: 0.6rem 0 1.6rem;
+}
+
+.chips {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 0.6rem 1.3rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+.chip { font-size: 0.78rem; color: rgba(245, 245, 247, 0.65); white-space: nowrap; }
+.chipDivider { width: 1px; height: 12px; background: rgba(255, 255, 255, 0.15); }
+
+@media (min-width: 900px) {
+  .equipLeft, .equipRight { display: block; }
+}
+
+@media (max-width: 480px) {
+  .wordmark { font-size: 2rem; }
+  .robotWrap { width: 150px; height: 150px; }
+  .robotImg { width: 115px; }
+  .chips { flex-wrap: wrap; justify-content: center; gap: 0.5rem 0.8rem; }
+  .chipDivider { display: none; }
+}

@@ -2,10 +2,12 @@ package com.gymmanagement.controller;
 
 import com.gymmanagement.config.RequireOwnership;
 import com.gymmanagement.config.RequireRole;
+import com.gymmanagement.exception.MemberNotFoundException;
 import com.gymmanagement.model.Member;
 import com.gymmanagement.model.Role;
 import com.gymmanagement.service.MemberService;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -57,6 +59,28 @@ public class MemberController {
     }
 
     /**
+     * GET /api/members/me
+     *
+     * The self-service endpoint identified as missing during frontend
+     * integration: no path variable, so ownership isn't something to
+     * CHECK — it's inherent in reading linkedMemberId straight from the
+     * caller's own validated token, the same request attribute
+     * RoleAuthorizationInterceptor already reads for @RequireOwnership.
+     * No new JWT parsing, no new annotation — any authenticated user
+     * (MEMBER or ADMIN) can call this; an ADMIN account (which has no
+     * linkedMemberId) gets a clear 404 rather than a confusing crash.
+     */
+    @GetMapping("/me")
+    public Member getMyProfile(HttpServletRequest request) {
+        String linkedMemberId = (String) request.getAttribute("linkedMemberId");
+        if (linkedMemberId == null) {
+            throw new MemberNotFoundException(
+                "No member profile is linked to this account.");
+        }
+        return memberService.getMemberById(linkedMemberId);
+    }
+
+    /**
      * GET /api/members/{memberId}
      * {memberId} is a "path variable" — whatever's in that URL segment
      * gets passed as the memberId parameter below. If MemberService
@@ -99,6 +123,41 @@ public class MemberController {
     }
 
     /**
+     * PATCH /api/members/{memberId}
+     * Edits name/email/phone — genuinely missing before this, not
+     * previously reachable via any endpoint. ADMIN-only, distinct from
+     * the ownership-based goal endpoint below: editing another
+     * person's core contact details is an administrative action, not
+     * a self-service one.
+     */
+    @PatchMapping("/{memberId}")
+    @RequireRole(Role.ADMIN)
+    public Member updateMember(@PathVariable String memberId,
+                               @Valid @RequestBody UpdateMemberRequest request) {
+        return memberService.updateMemberDetails(
+            memberId, request.name(), request.email(), request.phone());
+    }
+
+    /**
+     * PATCH /api/members/{memberId}/deactivate and /reactivate
+     * Soft-deactivation, not deletion — the existing DELETE endpoint
+     * above still exists separately for a genuine hard delete, but the
+     * Admin member-management UI uses these instead, so historical
+     * membership/enrolment data referencing this memberId stays intact.
+     */
+    @PatchMapping("/{memberId}/deactivate")
+    @RequireRole(Role.ADMIN)
+    public Member deactivateMember(@PathVariable String memberId) {
+        return memberService.deactivateMember(memberId);
+    }
+
+    @PatchMapping("/{memberId}/reactivate")
+    @RequireRole(Role.ADMIN)
+    public Member reactivateMember(@PathVariable String memberId) {
+        return memberService.reactivateMember(memberId);
+    }
+
+    /**
      * PATCH /api/members/{memberId}/goal
      * PATCH (not PUT) since this updates one field, not the whole
      * resource. Returns the updated Member so the client can confirm
@@ -133,4 +192,10 @@ public class MemberController {
     ) {}
 
     public record UpdateGoalRequest(@NotBlank String fitnessGoal) {}
+
+    public record UpdateMemberRequest(
+        @NotBlank String name,
+        @NotBlank @Email String email,
+        @NotBlank String phone
+    ) {}
 }

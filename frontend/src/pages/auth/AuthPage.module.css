@@ -1,0 +1,137 @@
+/*
+ * Theme tokens now come entirely from index.css's global :root /
+ * [data-theme="light"] — local duplication removed. Button/TextField/
+ * ErrorMessage's own CSS Modules reference these same global names,
+ * so their styling resolves correctly without this wrapper needing
+ * to redeclare anything.
+ */
+.authRoot {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  font-family: var(--font-sans);
+}
+
+.brandPanel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 3rem;
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 900px 700px at 15% 10%, var(--color-primary-soft), transparent 60%),
+    radial-gradient(ellipse 700px 800px at 85% 90%, var(--color-ai-accent-soft), transparent 60%),
+    linear-gradient(180deg, var(--color-bg-elevated), var(--color-bg) 75%);
+}
+
+.brandMarkGlow {
+  width: 96px;
+  height: 96px;
+  border-radius: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle, var(--color-primary-soft), transparent 72%);
+}
+.brandMark {
+  width: 70px;
+  height: 70px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-strong));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 16px 36px -8px rgba(155, 92, 246, 0.55);
+}
+
+.brandWordmark {
+  color: var(--dash-text);
+  font-size: 2.6rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+.brandAccent {
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-strong));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.brandTagline {
+  color: var(--color-text-secondary);
+  font-size: 1rem;
+  letter-spacing: 0.02em;
+}
+
+.formPanel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  position: relative;
+  background: linear-gradient(180deg, var(--color-bg-elevated), var(--color-bg));
+}
+
+.card {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  background: linear-gradient(165deg, var(--dash-glass-bg-strong), var(--dash-glass-bg) 60%);
+  border: 1px solid var(--dash-glass-border);
+  border-top-color: var(--dash-glass-edge);
+  border-radius: 22px;
+  backdrop-filter: blur(26px) saturate(140%);
+  -webkit-backdrop-filter: blur(26px) saturate(140%);
+  box-shadow: 0 30px 60px -14px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  padding: 2.5rem;
+}
+
+.cardHeader { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 1.2rem; }
+.cardMark {
+  width: 32px; height: 32px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.cardBrand { color: var(--dash-text); font-weight: 800; font-size: 1.05rem; }
+
+.title {
+  font-size: 1.7rem;
+  font-weight: 800;
+  color: var(--dash-text);
+  letter-spacing: -0.01em;
+}
+
+.subtitle {
+  color: var(--color-text-secondary);
+  margin-top: 0.25rem;
+  margin-bottom: 1.5rem;
+  font-size: 0.92rem;
+}
+
+.switchLink {
+  text-align: center;
+  margin-top: 1.5rem;
+  font-size: 0.88rem;
+  color: var(--color-text-secondary);
+}
+.switchLink a { color: var(--dash-accent-green); font-weight: 700; }
+
+.roleGroup { display: flex; flex-direction: column; gap: 0.4rem; }
+.roleGroup > span {
+  font-size: 0.82rem; font-weight: 700; color: var(--color-text-secondary);
+  text-transform: uppercase; letter-spacing: 0.04em;
+}
+.roleOptions { display: flex; gap: 1rem; }
+.roleOption { display: flex; align-items: center; gap: 0.5rem; font-size: 0.95rem; color: var(--dash-text); cursor: pointer; }
+
+.hint { font-size: 0.82rem; color: var(--color-text-secondary); margin-top: -0.4rem; line-height: 1.5; }
+
+@media (max-width: 900px) {
+  .authRoot { grid-template-columns: 1fr; }
+  .brandPanel { display: none; }
+  .card { max-width: 440px; }
+}

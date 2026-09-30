@@ -116,7 +116,25 @@ public class GeminiClient implements AiChatClient {
             // There is no automatic retry anywhere in this class. A failed
             // call fails once and stops — retrying automatically is exactly
             // the pattern that turns one bug into a burst of requests.
-            throw new AiServiceException("Failed to get a response from Gemini: " + e.getMessage());
+            //
+            // The full raw detail (e.getMessage()) still goes to the server
+            // log for real debugging — it just never reaches the end user
+            // anymore. Gemini's own error bodies come through as raw JSON
+            // with literal <EOL> tokens (a WebClient convention for
+            // embedding a multi-line body in an exception message), which
+            // is not something anyone using this app should ever have to
+            // read. A transient overload (503/UNAVAILABLE — the actual
+            // case that surfaced this) gets a clean, specific message;
+            // anything else gets an honest, generic one.
+            System.err.println("[AI] Gemini call failed: " + e.getMessage());
+
+            String detail = e.getMessage() != null ? e.getMessage() : "";
+            if (detail.contains("503") || detail.contains("UNAVAILABLE")) {
+                throw new AiServiceException(
+                    "The AI assistant is temporarily overloaded. Please try again in a moment.");
+            }
+            throw new AiServiceException(
+                "Could not reach the AI assistant right now. Please try again.");
         }
     }
 

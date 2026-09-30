@@ -118,7 +118,19 @@ public class BootcampToolCallingService implements BootcampToolCallingClient {
         } catch (AiServiceException e) {
             throw e;
         } catch (Exception e) {
-            throw new AiServiceException("Failed to get a response from Gemini: " + e.getMessage());
+            // Same fix as GeminiClient's identical catch block — raw Gemini
+            // error bodies (literal JSON, <EOL> tokens) never reached the
+            // user before this; now they're logged for real debugging and
+            // replaced with a clean, honest message.
+            System.err.println("[AI] Gemini tool-calling request failed: " + e.getMessage());
+
+            String detail = e.getMessage() != null ? e.getMessage() : "";
+            if (detail.contains("503") || detail.contains("UNAVAILABLE")) {
+                throw new AiServiceException(
+                    "The AI assistant is temporarily overloaded. Please try again in a moment.");
+            }
+            throw new AiServiceException(
+                "Could not reach the AI assistant right now. Please try again.");
         }
     }
 

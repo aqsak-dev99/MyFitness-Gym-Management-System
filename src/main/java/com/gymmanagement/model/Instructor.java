@@ -20,6 +20,7 @@ public class Instructor extends FullTimeStaff {
     }
 
     public String getSpecialisation() { return specialisation; }
+    public void setSpecialisation(String specialisation) { this.specialisation = specialisation; }
 
     /**
      * @JsonIgnore — same fix, same reason as Payment.getMember() yesterday.

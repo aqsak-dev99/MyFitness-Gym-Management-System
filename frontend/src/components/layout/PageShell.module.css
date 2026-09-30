@@ -1,0 +1,118 @@
+/*
+ * Theme tokens now live entirely in index.css's global :root /
+ * [data-theme="light"] — removed from here per the explicit
+ * "don't duplicate" instruction. This file only keeps genuinely
+ * page-specific layout: the atmospheric background and content
+ * wrapper. Background is now purple-forward (matching --color-primary)
+ * and deliberately more subtle than before — content should stay
+ * more visually important than the background at all times.
+ */
+.pageRoot {
+  min-height: 100vh;
+  position: relative;
+  overflow: hidden;
+  font-family: var(--font-sans);
+  background:
+    radial-gradient(ellipse 1000px 800px at 8% -10%, var(--color-page-glow-primary), transparent 58%),
+    radial-gradient(ellipse 800px 700px at 100% 0%, var(--color-page-glow-ai), transparent 55%),
+    radial-gradient(ellipse 700px 800px at 50% 130%, var(--color-page-glow-bootcamp), transparent 60%),
+    linear-gradient(180deg, var(--color-bg-elevated), var(--color-bg) 65%);
+  background-attachment: fixed;
+  transition: background-color 0.25s ease;
+}
+
+.starsLayer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.6;
+}
+
+/*
+ * Real visibility fix based on direct feedback: previous values
+ * (opacity 0.16, 0.85 scrim) made the photo nearly imperceptible in
+ * dark mode — not a subtle effect, just invisible. Increased so it's
+ * genuinely visible as a background, while the scrim (now less
+ * aggressive) still keeps card text fully readable on top of it.
+ *
+ * Light mode no longer hides the photo entirely — it gets its own
+ * treatment: a white-toned scrim instead of the dark one, at lower
+ * photo opacity, so it reads as a tasteful, subtle texture against a
+ * bright UI rather than either invisible or a jarring dark photo
+ * fighting a light theme.
+ */
+.photoLayer {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background-size: cover;
+  background-position: center;
+  opacity: 0.65;
+  pointer-events: none;
+}
+.photoLayer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, var(--color-bg-elevated) 0%, var(--color-bg) 85%);
+  opacity: 0.35;
+}
+:global([data-theme="light"]) .photoLayer {
+  opacity: 0.32;
+}
+:global([data-theme="light"]) .photoLayer::after {
+  background: linear-gradient(180deg, #ffffff 0%, var(--color-bg) 88%);
+  opacity: 0.3;
+}
+
+.mountainLayer {
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  width: 46vw;
+  max-width: 620px;
+  opacity: 0.3;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.content {
+  position: relative;
+  z-index: 1;
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: var(--dash-space-6) var(--dash-space-6) var(--dash-space-8);
+  margin-left: 232px;
+}
+
+/* Deliberately NOT inside .content — no max-width, no horizontal
+   padding — so a banner rendered here can genuinely reach the true
+   right edge of the viewport, not just .content's own 1040px cap.
+   Matches .content's own margin-left/breakpoint exactly so it starts
+   at the same point the sidebar ends. */
+.heroBannerSlot {
+  position: relative;
+  z-index: 1;
+  margin-left: 232px;
+}
+
+@media (max-width: 860px) {
+  .heroBannerSlot { margin-left: 0; }
+}
+
+@media (max-width: 860px) {
+  .content { margin-left: 0; }
+}
+
+@media (max-width: 760px) {
+  .content { padding: var(--dash-space-4) var(--dash-space-4) var(--dash-space-6); }
+}
+
+/* Stars/mountain are an explicitly dark-mode-specific atmospheric
+   detail — never specified for light mode, so hidden there rather
+   than assumed to translate. */
+:global([data-theme="light"]) .starsLayer,
+:global([data-theme="light"]) .mountainLayer {
+  display: none;
+}

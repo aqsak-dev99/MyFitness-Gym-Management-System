@@ -1,10 +1,10 @@
 package com.gymmanagement.repository;
 
-import com.gymmanagement.db.DatabaseManager;
 import com.gymmanagement.model.Document;
 
 import org.springframework.stereotype.Repository;
 
+import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -29,24 +29,32 @@ import java.util.Optional;
 @Repository
 public class PostgresDocumentRepository implements DocumentRepository {
 
-    private Connection conn() {
-        return DatabaseManager.getInstance().getConnection();
+    private final DataSource dataSource;
+
+    public PostgresDocumentRepository(DataSource dataSource) {
+        this.dataSource = dataSource;
+    }
+
+    private Connection conn() throws SQLException {
+        return dataSource.getConnection();
     }
 
     @Override
     public void save(Document document) {
         String sql =
-            "INSERT INTO documents (document_id, filename, content, uploaded_at) " +
-            "VALUES (?, ?, ?, ?) " +
+            "INSERT INTO documents (document_id, filename, content, uploaded_at, audience) " +
+            "VALUES (?, ?, ?, ?, ?) " +
             "ON CONFLICT(document_id) DO UPDATE SET " +
             "  filename = excluded.filename, " +
             "  content = excluded.content, " +
-            "  uploaded_at = excluded.uploaded_at";
-        try (PreparedStatement ps = conn().prepareStatement(sql)) {
+            "  uploaded_at = excluded.uploaded_at, " +
+            "  audience = excluded.audience";
+        try (Connection c = conn(); PreparedStatement ps = c.prepareStatement(sql)) {
             ps.setString(1, document.getDocumentId());
             ps.setString(2, document.getFilename());
             ps.setString(3, document.getContent());
             ps.setString(4, document.getUploadedAt().toString());
+            ps.setString(5, document.getAudience());
             ps.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException("Failed to save document " + document.getDocumentId()
@@ -57,7 +65,7 @@ public class PostgresDocumentRepository implements DocumentRepository {
     @Override
     public Optional<Document> findById(String documentId) {
         String sql = "SELECT * FROM documents WHERE document_id = ?";
-        try (PreparedStatement ps = conn().prepareStatement(sql)) {
+        try (Connection c = conn(); PreparedStatement ps = c.prepareStatement(sql)) {
             ps.setString(1, documentId);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) return Optional.of(buildDocument(rs));
@@ -72,7 +80,8 @@ public class PostgresDocumentRepository implements DocumentRepository {
     public List<Document> findAll() {
         String sql = "SELECT * FROM documents ORDER BY uploaded_at DESC";
         List<Document> result = new ArrayList<>();
-        try (PreparedStatement ps = conn().prepareStatement(sql);
+        try (Connection c = conn();
+             PreparedStatement ps = c.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
             while (rs.next()) result.add(buildDocument(rs));
         } catch (SQLException e) {
@@ -84,7 +93,7 @@ public class PostgresDocumentRepository implements DocumentRepository {
     @Override
     public void delete(String documentId) {
         String sql = "DELETE FROM documents WHERE document_id = ?";
-        try (PreparedStatement ps = conn().prepareStatement(sql)) {
+        try (Connection c = conn(); PreparedStatement ps = c.prepareStatement(sql)) {
             ps.setString(1, documentId);
             ps.executeUpdate();
         } catch (SQLException e) {
@@ -97,7 +106,8 @@ public class PostgresDocumentRepository implements DocumentRepository {
             rs.getString("document_id"),
             rs.getString("filename"),
             rs.getString("content"),
-            LocalDate.parse(rs.getString("uploaded_at"))
+            LocalDate.parse(rs.getString("uploaded_at")),
+            rs.getString("audience")
         );
     }
 }

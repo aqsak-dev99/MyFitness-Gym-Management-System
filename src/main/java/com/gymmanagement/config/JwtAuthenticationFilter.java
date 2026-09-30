@@ -60,6 +60,20 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response,
                                     @NonNull FilterChain filterChain) throws ServletException, IOException {
+        // CORS preflight requests (OPTIONS) never carry an Authorization
+        // header — that's the whole point of a preflight check, the
+        // browser is asking "am I allowed to make this request at all"
+        // before attaching any credentials. This filter runs at the raw
+        // servlet layer, BEFORE Spring MVC's CORS handling — so without
+        // this explicit bypass, every preflight request would be
+        // rejected here as "missing Authorization header," breaking CORS
+        // entirely regardless of whether the real, follow-up request
+        // would have had a valid token.
+        if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         String path = request.getRequestURI();
 
         if (isPublicPath(path)) {

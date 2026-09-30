@@ -1,0 +1,113 @@
+.header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: var(--dash-space-4); gap: var(--dash-space-3); flex-wrap: wrap; }
+.title { color: var(--color-text-primary); font-size: 2rem; font-weight: 800; letter-spacing: -0.02em; margin: 0; }
+.subtitle { color: var(--color-text-secondary); margin: var(--dash-space-1) 0 0; }
+
+.headerActions { display: flex; align-items: center; gap: var(--dash-space-2); flex-shrink: 0; }
+.addBtn {
+  padding: 0.65rem 1.2rem; border-radius: 10px; border: none;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-strong));
+  color: white; font-weight: 700; font-size: 0.85rem; cursor: pointer; white-space: nowrap;
+}
+
+.exportBtn {
+  padding: 0.65rem 1.2rem; border-radius: 10px;
+  border: 1px solid var(--color-border); background: transparent;
+  color: var(--color-text-primary); font-weight: 700; font-size: 0.85rem;
+  cursor: pointer; white-space: nowrap;
+}
+
+.addForm {
+  display: flex; flex-wrap: wrap; gap: var(--dash-space-2);
+  padding: var(--dash-space-4); background: var(--color-surface); border: 1px solid var(--color-border);
+  border-radius: var(--dash-radius-md); margin-bottom: var(--dash-space-4); align-items: center;
+}
+.addForm input {
+  flex: 1; min-width: 140px; padding: 0.55rem 0.8rem; border-radius: 8px;
+  border: 1px solid var(--color-border); background: var(--color-bg); color: var(--color-text-primary); font-size: 0.85rem;
+}
+.addForm button {
+  padding: 0.55rem 1.1rem; border-radius: 8px; border: none; background: var(--color-primary);
+  color: white; font-weight: 700; font-size: 0.85rem; cursor: pointer;
+}
+.addForm button:disabled { opacity: 0.6; }
+
+.search {
+  width: 100%; padding: 0.7rem 1rem; border-radius: var(--dash-radius-md);
+  border: 1px solid var(--color-border); background: var(--color-surface); color: var(--color-text-primary);
+  font-size: 0.88rem; margin-bottom: var(--dash-space-4);
+}
+
+.table { display: flex; flex-direction: column; }
+.tableHead {
+  display: grid; grid-template-columns: 1.4fr 1.4fr 0.8fr 0.9fr 1.4fr; gap: var(--dash-space-3);
+  padding: 0 var(--dash-space-3) var(--dash-space-2);
+  font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-secondary); font-weight: 700;
+}
+
+.rowGroup { margin-bottom: var(--dash-space-2); }
+.row {
+  display: grid; grid-template-columns: 1.4fr 1.4fr 0.8fr 0.9fr 1.4fr; gap: var(--dash-space-3);
+  align-items: center; padding: var(--dash-space-3); background: var(--color-surface);
+  border: 1px solid var(--color-border); border-radius: var(--dash-radius-md);
+}
+.rowInactive { opacity: 0.6; }
+
+.name { font-weight: 700; color: var(--color-text-primary); font-size: 0.88rem; }
+.memberId { font-size: 0.72rem; color: var(--color-text-secondary); }
+.email { font-size: 0.82rem; color: var(--color-text-primary); }
+.phone { font-size: 0.72rem; color: var(--color-text-secondary); }
+
+.statusBadge { font-size: 0.68rem; font-weight: 800; padding: 0.25rem 0.6rem; border-radius: 999px; width: fit-content; }
+.statusBadge.active { background: rgba(52, 199, 89, 0.14); color: #34c759; }
+.statusBadge.inactive { background: var(--color-danger-soft); color: var(--color-danger); }
+
+.membershipBadge { font-size: 0.68rem; font-weight: 800; padding: 0.25rem 0.6rem; border-radius: 999px; width: fit-content; }
+.membershipBadge.hasMembership { background: var(--color-primary-soft); color: var(--color-primary); }
+.membershipBadge.frozen { background: var(--color-bootcamp-accent-soft); color: var(--color-bootcamp-accent); }
+.membershipBadge.noMembership { background: var(--color-goal-accent-soft); color: var(--color-goal-accent); }
+
+.actions { display: flex; gap: var(--dash-space-2); flex-wrap: wrap; }
+.linkBtn { background: none; border: none; color: var(--color-primary); font-size: 0.76rem; font-weight: 700; cursor: pointer; padding: 0; }
+.linkBtn:hover { text-decoration: underline; }
+
+.editCell { display: flex; flex-direction: column; gap: 4px; }
+.editCell input {
+  padding: 0.4rem 0.6rem; border-radius: 6px; border: 1px solid var(--color-border);
+  background: var(--color-bg); color: var(--color-text-primary); font-size: 0.8rem;
+}
+.saveBtn { background: var(--color-primary); color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 6px; font-size: 0.76rem; font-weight: 700; cursor: pointer; }
+.cancelBtn { background: none; border: 1px solid var(--color-border); color: var(--color-text-secondary); padding: 0.4rem 0.8rem; border-radius: 6px; font-size: 0.76rem; cursor: pointer; }
+
+.membershipPanel {
+  margin-top: var(--dash-space-2); padding: var(--dash-space-3);
+  background: var(--color-surface-hover); border: 1px solid var(--color-border);
+  border-radius: var(--dash-radius-md); display: flex; flex-direction: column; gap: var(--dash-space-3);
+}
+.currentMembership { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--dash-space-2); font-size: 0.82rem; color: var(--color-text-primary); }
+.membershipActions { display: flex; gap: var(--dash-space-2); }
+.membershipActions button {
+  padding: 0.4rem 0.8rem; border-radius: 6px; border: 1px solid var(--color-border);
+  background: var(--color-surface); color: var(--color-text-primary); font-size: 0.76rem; font-weight: 700; cursor: pointer;
+}
+.dangerBtn { color: var(--color-danger) !important; border-color: rgba(226,118,106,0.4) !important; }
+.noMembershipText { font-size: 0.82rem; color: var(--color-text-secondary); margin: 0; }
+
+.assignForm { display: flex; flex-wrap: wrap; gap: var(--dash-space-2); align-items: center; }
+.assignLabel { font-size: 0.76rem; font-weight: 700; color: var(--color-text-secondary); width: 100%; }
+.assignForm input, .assignForm select {
+  padding: 0.45rem 0.7rem; border-radius: 6px; border: 1px solid var(--color-border);
+  background: var(--color-bg); color: var(--color-text-primary); font-size: 0.8rem;
+}
+.assignForm button {
+  padding: 0.45rem 0.9rem; border-radius: 6px; border: none; background: var(--color-primary);
+  color: white; font-size: 0.78rem; font-weight: 700; cursor: pointer;
+}
+.assignForm button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.formError { color: var(--color-danger); font-size: 0.8rem; margin: var(--dash-space-2) 0 0; }
+.empty { color: var(--color-text-secondary); text-align: center; padding: var(--dash-space-6); }
+
+@media (max-width: 900px) {
+  .tableHead { display: none; }
+  .row { grid-template-columns: 1fr; gap: var(--dash-space-2); }
+}

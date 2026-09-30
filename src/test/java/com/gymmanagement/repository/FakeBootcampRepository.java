@@ -38,4 +38,9 @@ public class FakeBootcampRepository implements BootcampRepository {
     public void delete(String classId) {
         classes.removeIf(c -> c.getClassId().equals(classId));
     }
+
+    @Override
+    public boolean hasAnyClasses() {
+        return !classes.isEmpty();
+    }
 }

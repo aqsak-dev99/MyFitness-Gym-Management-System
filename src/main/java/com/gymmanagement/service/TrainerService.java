@@ -7,6 +7,7 @@ import com.gymmanagement.model.GymClass;
 import com.gymmanagement.model.Instructor;
 import com.gymmanagement.model.PartTimeStaff;
 import com.gymmanagement.model.Staff;
+import com.gymmanagement.repository.StaffRepository;
 
 import org.springframework.stereotype.Service;
 
@@ -24,12 +25,21 @@ import java.util.stream.Stream;
  *  - Only an Instructor (not generic Staff) can be assigned to a class.
  *  - Availability is derived from the staff type at query time.
  *
- * No System.out calls. No ArrayList exposed outside this class.
- * Lists are injected at construction so this service is fully testable.
+ * Persistence model (added when the original in-memory-only design was
+ * found to never survive a restart — see StaffRepository/
+ * SqliteStaffRepository/StaffSeeder for the full fix):
  *
- * @Service — Spring auto-wires the three List constructor parameters from
- * the beans already defined in StaffConfig (built specifically ahead of
- * this, when MembershipService was wired up).
+ * This service still holds its three lists in memory and mutates them
+ * directly, exactly as before — assignInstructorToClass()'s conflict
+ * check and every other read here is completely unchanged. What's new
+ * is that the constructor now seeds those in-memory lists from
+ * staffRepo (a real database table) instead of StaffConfig's hardcoded
+ * beans, and add*() now writes through to staffRepo in addition to the
+ * in-memory list. The in-memory lists remain the single source of
+ * truth *during* a running process — staffRepo is only consulted at
+ * startup and on write, deliberately not on every read, to avoid a
+ * mutual-recursion risk with SqliteBootcampRepository (see
+ * SqliteStaffRepository's class-level comment for the full reasoning).
  */
 @Service
 public class TrainerService {
@@ -37,13 +47,16 @@ public class TrainerService {
     private final List<FullTimeStaff> fullTimeStaff;
     private final List<PartTimeStaff> partTimeStaff;
     private final List<Instructor>    instructors;
+    private final StaffRepository     staffRepo;
 
     public TrainerService(List<FullTimeStaff> fullTimeStaff,
                           List<PartTimeStaff> partTimeStaff,
-                          List<Instructor>    instructors) {
+                          List<Instructor>    instructors,
+                          StaffRepository     staffRepo) {
         this.fullTimeStaff = new ArrayList<>(fullTimeStaff);
         this.partTimeStaff = new ArrayList<>(partTimeStaff);
         this.instructors   = new ArrayList<>(instructors);
+        this.staffRepo     = staffRepo;
     }
 
     // ── add staff ─────────────────────────────────────────
@@ -53,6 +66,7 @@ public class TrainerService {
             throw new IllegalArgumentException(
                 "Staff ID already in use: " + staff.getStaffId());
         fullTimeStaff.add(staff);
+        staffRepo.saveFullTimeStaff(staff);
     }
 
     public void addPartTimeStaff(PartTimeStaff staff) {
@@ -60,6 +74,7 @@ public class TrainerService {
             throw new IllegalArgumentException(
                 "Staff ID already in use: " + staff.getStaffId());
         partTimeStaff.add(staff);
+        staffRepo.savePartTimeStaff(staff);
     }
 
     public void addInstructor(Instructor instructor) {
@@ -67,6 +82,122 @@ public class TrainerService {
             throw new IllegalArgumentException(
                 "Staff ID already in use: " + instructor.getStaffId());
         instructors.add(instructor);
+        staffRepo.saveInstructor(instructor);
+    }
+
+    // ── edit staff ────────────────────────────────────────
+    // Three type-specific methods, mirroring add*()'s existing shape —
+    // each type has genuinely different editable fields (specialisation
+    // only applies to instructors, hourlyRate only to part-time), so a
+    // single generic method would need type-checking anyway. Every
+    // method here fetches the SAME live in-memory object the rest of
+    // this service uses (not a fresh copy), mutates it via the model's
+    // own setters, then persists via the exact same upsert-based
+    // save*() the add* methods already use.
+
+    public FullTimeStaff updateFullTimeStaff(String staffId, String name, String email,
+                                              String phone, String role, double salary,
+                                              String workSchedule) {
+        FullTimeStaff staff = findFullTimeStaffOrThrow(staffId);
+        staff.setName(name);
+        staff.setEmail(email);
+        staff.setPhone(phone);
+        staff.setRole(role);
+        staff.setSalary(salary);
+        staff.setWorkSchedule(workSchedule);
+        staffRepo.saveFullTimeStaff(staff);
+        return staff;
+    }
+
+    public PartTimeStaff updatePartTimeStaff(String staffId, String name, String email,
+                                             String phone, String role, double hourlyRate,
+                                             int hoursPerWeek, String shiftPattern) {
+        PartTimeStaff staff = findPartTimeStaffOrThrow(staffId);
+        staff.setName(name);
+        staff.setEmail(email);
+        staff.setPhone(phone);
+        staff.setRole(role);
+        staff.setHourlyRate(hourlyRate);
+        staff.setHoursPerWeek(hoursPerWeek);
+        staff.setShiftPattern(shiftPattern);
+        staffRepo.savePartTimeStaff(staff);
+        return staff;
+    }
+
+    public Instructor updateInstructor(String staffId, String name, String email,
+                                       String phone, double salary, String workSchedule,
+                                       String specialisation) {
+        Instructor instructor = findInstructorOrThrow(staffId);
+        instructor.setName(name);
+        instructor.setEmail(email);
+        instructor.setPhone(phone);
+        instructor.setSalary(salary);
+        instructor.setWorkSchedule(workSchedule);
+        instructor.setSpecialisation(specialisation);
+        staffRepo.saveInstructor(instructor);
+        return instructor;
+    }
+
+    // ── activation status ──────────────────────────────────
+    /**
+     * Unified across all three types (unlike edit above) — deactivation
+     * only ever flips one shared boolean (Staff.available), so there's
+     * no type-specific field to justify three separate methods here.
+     * Searches all three in-memory lists for the matching staffId, then
+     * persists via whichever save*() method matches the real type found.
+     */
+    public Staff deactivateStaff(String staffId) {
+        return setAvailability(staffId, false);
+    }
+
+    public Staff reactivateStaff(String staffId) {
+        return setAvailability(staffId, true);
+    }
+
+    private Staff setAvailability(String staffId, boolean available) {
+        for (Instructor i : instructors) {
+            if (i.getStaffId().equals(staffId)) {
+                i.setAvailable(available);
+                staffRepo.saveInstructor(i);
+                return i;
+            }
+        }
+        for (FullTimeStaff s : fullTimeStaff) {
+            if (s.getStaffId().equals(staffId)) {
+                s.setAvailable(available);
+                staffRepo.saveFullTimeStaff(s);
+                return s;
+            }
+        }
+        for (PartTimeStaff s : partTimeStaff) {
+            if (s.getStaffId().equals(staffId)) {
+                s.setAvailable(available);
+                staffRepo.savePartTimeStaff(s);
+                return s;
+            }
+        }
+        throw new MemberNotFoundException("No staff member found with ID: " + staffId);
+    }
+
+    private FullTimeStaff findFullTimeStaffOrThrow(String staffId) {
+        return fullTimeStaff.stream()
+            .filter(s -> s.getStaffId().equals(staffId))
+            .findFirst()
+            .orElseThrow(() -> new MemberNotFoundException("No full-time staff found with ID: " + staffId));
+    }
+
+    private PartTimeStaff findPartTimeStaffOrThrow(String staffId) {
+        return partTimeStaff.stream()
+            .filter(s -> s.getStaffId().equals(staffId))
+            .findFirst()
+            .orElseThrow(() -> new MemberNotFoundException("No part-time staff found with ID: " + staffId));
+    }
+
+    private Instructor findInstructorOrThrow(String staffId) {
+        return instructors.stream()
+            .filter(i -> i.getStaffId().equals(staffId))
+            .findFirst()
+            .orElseThrow(() -> new MemberNotFoundException("No instructor found with ID: " + staffId));
     }
 
     // ── retrieval ─────────────────────────────────────────

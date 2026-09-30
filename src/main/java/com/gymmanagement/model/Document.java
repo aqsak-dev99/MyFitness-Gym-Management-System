@@ -17,8 +17,9 @@ public class Document {
     private final String    filename;
     private final String    content;
     private final LocalDate uploadedAt;
+    private final String    audience;   // "MEMBER" or "ADMIN" — see DatabaseSchema.ADD_DOCUMENT_AUDIENCE_COLUMN
 
-    public Document(String documentId, String filename, String content, LocalDate uploadedAt) {
+    public Document(String documentId, String filename, String content, LocalDate uploadedAt, String audience) {
         if (documentId == null || documentId.isBlank())
             throw new IllegalArgumentException("Document ID cannot be empty.");
         if (filename == null || filename.isBlank())
@@ -30,10 +31,12 @@ public class Document {
         this.filename   = filename;
         this.content    = content;
         this.uploadedAt = uploadedAt != null ? uploadedAt : LocalDate.now();
+        this.audience   = (audience == null || audience.isBlank()) ? "MEMBER" : audience;
     }
 
     public String    getDocumentId() { return documentId; }
     public String    getFilename()   { return filename;   }
     public String    getContent()    { return content;    }
     public LocalDate getUploadedAt() { return uploadedAt;  }
+    public String    getAudience()   { return audience;    }
 }

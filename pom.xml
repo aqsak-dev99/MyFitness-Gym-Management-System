@@ -57,6 +57,16 @@
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
+        <!-- Brings in HikariCP + Spring's DataSource support — nothing
+             ORM-related. Deliberately spring-boot-starter-jdbc, NOT
+             spring-boot-starter-data-jpa: this app stays on raw JDBC
+             throughout, only the connection-acquisition layer changes
+             from a hand-rolled singleton to a real pool. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-jdbc</artifactId>
+        </dependency>
+
         <!-- Health check endpoint (/actuator/health). Only 'health' is
              exposed publicly by default — everything else (metrics, env,
              beans) stays hidden unless explicitly opted into, which

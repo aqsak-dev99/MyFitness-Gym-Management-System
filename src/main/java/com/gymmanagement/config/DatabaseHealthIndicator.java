@@ -1,59 +1,49 @@
 package com.gymmanagement.config;
 
-import com.gymmanagement.db.DatabaseManager;
-
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.stereotype.Component;
 
+import javax.sql.DataSource;
 import java.sql.Connection;
 
 /**
  * DatabaseHealthIndicator — makes /actuator/health actually mean
  * something for this project, not just "the JVM is running."
  *
- * Spring Boot Actuator can auto-detect database health for free, but
- * only when the connection is a proper Spring-managed DataSource bean.
- * This project's DatabaseManager is a hand-rolled Singleton using raw
- * DriverManager.getConnection() (see its own comments on why — same
- * reasoning applies here as everywhere else). Actuator has no way to
- * see inside that on its own, so without this class, /actuator/health
- * would only ever report "UP" as long as Spring itself started
- * successfully — even if the actual Postgres connection had silently
- * died, exactly like the real EOFException bug found earlier tonight.
+ * Updated for the HikariCP migration: now borrows a connection from
+ * the real pool (DataSource) instead of reaching into the old
+ * DatabaseManager singleton, which no longer holds a connection at
+ * all. Borrowing and immediately returning a connection here doubles
+ * as a real, live check that the pool itself is healthy — not just
+ * that a Bean got constructed successfully at startup.
  *
- * Originally checked connection.isClosed() — a genuine mistake, caught
- * during a real recurrence of that same bug. isClosed() only reflects
- * whether the connection was explicitly closed or has ALREADY triggered
- * a fatal error the driver noticed — it doesn't actively test anything.
- * The actual EOFException was only discovered mid-query, inside
- * PGStream.receiveChar(), the moment a real request tried to use the
- * connection. Right up until that instant, isClosed() would still have
- * reported false, meaning the original version of this class shared the
- * exact same blind spot as the bug it existed to catch.
- *
- * isValid(timeoutSeconds) is different: it actively round-trips to the
- * database (a lightweight driver-level check) within the given timeout,
- * rather than trusting a flag that hasn't been updated yet. This is
- * what makes the health check genuinely predictive rather than another
- * copy of the same false confidence.
+ * isValid(timeoutSeconds) is still the right check, for the same
+ * reason as before: it actively round-trips to the database within a
+ * timeout, rather than trusting a flag that may not reflect a
+ * connection that died mid-use.
  */
 @Component
 public class DatabaseHealthIndicator implements HealthIndicator {
+
+    private final DataSource dataSource;
 
     // Kept short deliberately — this runs on every health check call,
     // so it should fail fast rather than hang the check itself if the
     // database is genuinely unreachable.
     private static final int VALIDATION_TIMEOUT_SECONDS = 2;
 
+    public DatabaseHealthIndicator(DataSource dataSource) {
+        this.dataSource = dataSource;
+    }
+
     @Override
     public Health health() {
-        try {
-            Connection connection = DatabaseManager.getInstance().getConnection();
-            if (connection != null && connection.isValid(VALIDATION_TIMEOUT_SECONDS)) {
+        try (Connection connection = dataSource.getConnection()) {
+            if (connection.isValid(VALIDATION_TIMEOUT_SECONDS)) {
                 return Health.up()
                     .withDetail("database", "PostgreSQL")
-                    .withDetail("status", "connection verified")
+                    .withDetail("status", "connection pool healthy")
                     .build();
             }
             return Health.down()

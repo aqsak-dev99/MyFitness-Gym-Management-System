@@ -26,6 +26,9 @@ public class PartTimeStaff extends Staff {
         this.hourlyRate = rate;
     }
 
+    public void setHoursPerWeek(int hoursPerWeek) { this.hoursPerWeek = hoursPerWeek; }
+    public void setShiftPattern(String shiftPattern) { this.shiftPattern = shiftPattern; }
+
     public double calcMonthlyEarnings() {
         return hourlyRate * hoursPerWeek * 4;
     }

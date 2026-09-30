@@ -1,0 +1,44 @@
+.statsRow {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--dash-space-4);
+  margin-bottom: var(--dash-space-4);
+}
+
+.statCard {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  border-width: 1px;
+}
+
+.purple { border-color: rgba(155, 92, 246, 0.35); }
+.blue { border-color: rgba(74, 184, 247, 0.35); }
+.gold { border-color: rgba(245, 166, 35, 0.35); }
+.green { border-color: rgba(52, 199, 89, 0.35); }
+
+.iconBadge {
+  width: 42px;
+  height: 42px;
+  border-radius: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: var(--dash-space-3);
+}
+.purple .iconBadge { background: var(--color-primary-soft); }
+.blue .iconBadge { background: var(--color-bootcamp-accent-soft); }
+.gold .iconBadge { background: var(--color-goal-accent-soft); }
+.green .iconBadge { background: rgba(52, 199, 89, 0.14); }
+
+.statLabel { font-size: 0.82rem; color: var(--color-text-secondary); font-weight: 600; margin-bottom: 2px; }
+.statValue { font-size: 2.4rem; font-weight: 800; letter-spacing: -0.02em; color: var(--color-text-primary); line-height: 1.1; }
+.statSub { font-size: 0.74rem; color: var(--color-text-secondary); margin-top: var(--dash-space-2); }
+.purple .statSub { color: #34c759; font-weight: 600; }
+
+@media (max-width: 900px) {
+  .statsRow { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 500px) {
+  .statsRow { grid-template-columns: 1fr; }
+}

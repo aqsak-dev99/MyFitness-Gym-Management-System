@@ -1,0 +1,188 @@
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 232px;
+  display: flex;
+  flex-direction: column;
+  padding: var(--dash-space-5) var(--dash-space-4);
+  background: var(--color-bg-elevated);
+  border-right: 1px solid var(--color-border);
+  z-index: 40;
+  transition: transform 0.25s ease, background-color 0.25s ease, border-color 0.25s ease;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--color-text-primary);
+  font-size: 1.05rem;
+  font-weight: 800;
+  text-decoration: none;
+  padding: 0 var(--dash-space-2);
+  margin-bottom: var(--dash-space-6);
+}
+
+.links {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  flex: 1;
+}
+
+.navLink {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.65rem 0.8rem;
+  border-radius: 10px;
+  font-size: 0.87rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+.navLink:hover { color: var(--color-text-primary); background: var(--color-surface-hover); text-decoration: none; }
+.navLinkActive {
+  color: var(--color-primary);
+  background: var(--color-primary-soft);
+}
+
+.footer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--dash-space-2);
+  padding-top: var(--dash-space-4);
+  border-top: 1px solid var(--color-border);
+}
+
+.themeToggle {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.55rem 0.8rem;
+  border-radius: 10px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+.themeToggle:hover { background: var(--color-surface-hover); }
+
+.userRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 0.2rem;
+}
+.username { color: var(--color-text-primary); font-size: 0.82rem; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.roleBadge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-primary);
+  background: var(--color-primary-soft);
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+.logoutBtn {
+  padding: 0.55rem;
+  border-radius: 10px;
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+.logoutBtn:hover { background: var(--color-danger-soft); color: var(--color-danger); }
+
+/* Mobile top bar + overlay — hidden entirely on desktop */
+.mobileBar {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--dash-space-3) var(--dash-space-4);
+  background: var(--color-bg-elevated);
+  border-bottom: 1px solid var(--color-border);
+  position: sticky;
+  top: 0;
+  z-index: 30;
+}
+.menuBtn {
+  background: none;
+  border: none;
+  color: var(--color-text-primary);
+  cursor: pointer;
+  padding: 0.3rem;
+}
+.overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 39;
+}
+
+@media (max-width: 860px) {
+  .sidebar {
+    transform: translateX(-100%);
+    width: 260px;
+  }
+  .sidebarOpen { transform: translateX(0); }
+  .mobileBar { display: flex; }
+  .overlay { display: block; }
+}
+
+/* Light mode only — a dark, gradient sidebar, matching the reference
+   layout's own permanently-dark sidebar. Dark mode's sidebar already
+   uses --color-bg-elevated (already dark there), so it's completely
+   untouched by anything below. Every text/icon color the sidebar uses
+   normally comes from shared tokens (--color-text-primary, etc.) meant
+   for a light background — those would be unreadable against this new
+   dark fill, so they're explicitly overridden here, scoped to .sidebar
+   specifically, not changed globally. Nothing outside the sidebar in
+   light mode is affected by any rule below. */
+:global([data-theme="light"]) .sidebar {
+  background: linear-gradient(180deg, #1c1732 0%, #120f22 100%);
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+}
+:global([data-theme="light"]) .brand { color: #ffffff; }
+:global([data-theme="light"]) .navLink { color: rgba(255, 255, 255, 0.62); }
+:global([data-theme="light"]) .navLink:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.08);
+}
+:global([data-theme="light"]) .navLinkActive {
+  color: #b998fa;
+  background: rgba(155, 92, 246, 0.18);
+}
+:global([data-theme="light"]) .footer { border-top-color: rgba(255, 255, 255, 0.1); }
+:global([data-theme="light"]) .themeToggle {
+  border-color: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.75);
+}
+:global([data-theme="light"]) .themeToggle:hover { background: rgba(255, 255, 255, 0.1); }
+:global([data-theme="light"]) .username { color: #ffffff; }
+:global([data-theme="light"]) .roleBadge {
+  color: #b998fa;
+  background: rgba(155, 92, 246, 0.2);
+}
+:global([data-theme="light"]) .logoutBtn {
+  border-color: rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.75);
+}
+:global([data-theme="light"]) .logoutBtn:hover {
+  background: var(--color-danger-soft);
+  color: var(--color-danger);
+}

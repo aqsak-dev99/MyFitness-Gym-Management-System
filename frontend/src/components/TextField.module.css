@@ -1,0 +1,43 @@
+/*
+ * Real bug fix: every color here was previously a hardcoded literal
+ * (rgba(245,246,245,...) for text, #f5f6f5 for input text) — correct
+ * for dark mode by coincidence, since that's near-white, but with zero
+ * light-mode override. In light mode this rendered as near-white text
+ * on a white card: invisible labels, invisible typed input text.
+ * Replaced with the same real theme tokens used everywhere else in
+ * this app, so both themes now get correct, readable contrast.
+ */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.label {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.input {
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  font-size: 1rem;
+  background-color: var(--color-surface);
+  color: var(--color-text-primary);
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+.input::placeholder { color: var(--color-text-secondary); opacity: 0.7; }
+.input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  background-color: var(--color-surface-hover);
+  box-shadow: 0 0 0 3px var(--color-primary-soft);
+}
+
+.inputError { border-color: var(--color-danger); }
+
+.errorText { font-size: 0.82rem; color: var(--color-danger); }

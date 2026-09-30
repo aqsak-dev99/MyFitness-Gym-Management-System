@@ -1,6 +1,5 @@
 package com.gymmanagement.repository;
 
-import com.gymmanagement.db.DatabaseManager;
 import com.gymmanagement.model.BootcampClass;
 import com.gymmanagement.model.Instructor;
 import com.gymmanagement.model.Member;
@@ -8,6 +7,7 @@ import com.gymmanagement.model.membership.BootcampType;
 
 import org.springframework.stereotype.Repository;
 
+import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -54,15 +54,18 @@ public class SqliteBootcampRepository implements BootcampRepository {
 
     private final SqliteMemberRepository   memberRepo;
     private final Supplier<List<Instructor>> instructorSupplier;
+    private final DataSource dataSource;
 
     public SqliteBootcampRepository(SqliteMemberRepository   memberRepo,
-                                    Supplier<List<Instructor>> instructorSupplier) {
+                                    Supplier<List<Instructor>> instructorSupplier,
+                                    DataSource dataSource) {
         this.memberRepo         = memberRepo;
         this.instructorSupplier = instructorSupplier;
+        this.dataSource         = dataSource;
     }
 
-    private Connection conn() {
-        return DatabaseManager.getInstance().getConnection();
+    private Connection conn() throws SQLException {
+        return dataSource.getConnection();
     }
 
     // ══════════════════════════════════════════════════════
@@ -71,28 +74,32 @@ public class SqliteBootcampRepository implements BootcampRepository {
 
     @Override
     public void save(BootcampClass bc) {
-        Connection c = conn();
-        try {
-            c.setAutoCommit(false);
-            upsertClass(c, bc);
-            syncEnrolments(c, bc);
-            c.commit();
-        } catch (SQLException e) {
-            rollback(c);
+        try (Connection c = conn()) {
+            try {
+                c.setAutoCommit(false);
+                upsertClass(c, bc);
+                syncEnrolments(c, bc);
+                c.commit();
+            } catch (SQLException e) {
+                rollback(c);
+                throw new RuntimeException("Failed to save bootcamp class " + bc.getClassId()
+                                           + ": " + e.getMessage(), e);
+            } finally {
+                restoreAutoCommit(c);
+            }
+        } catch (SQLException outer) {
             throw new RuntimeException("Failed to save bootcamp class " + bc.getClassId()
-                                       + ": " + e.getMessage(), e);
-        } finally {
-            restoreAutoCommit(c);
+                                       + ": " + outer.getMessage(), outer);
         }
     }
 
     @Override
     public Optional<BootcampClass> findById(String classId) {
         String sql = "SELECT * FROM bootcamp_classes WHERE class_id = ?";
-        try (PreparedStatement ps = conn().prepareStatement(sql)) {
+        try (Connection c = conn(); PreparedStatement ps = c.prepareStatement(sql)) {
             ps.setString(1, classId);
             try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) return Optional.of(buildBootcampClass(rs));
+                if (rs.next()) return Optional.of(buildBootcampClass(rs, c));
             }
         } catch (SQLException e) {
             throw new RuntimeException("findById bootcamp failed: " + e.getMessage(), e);
@@ -104,9 +111,10 @@ public class SqliteBootcampRepository implements BootcampRepository {
     public List<BootcampClass> findAll() {
         String sql = "SELECT * FROM bootcamp_classes ORDER BY class_id";
         List<BootcampClass> result = new ArrayList<>();
-        try (PreparedStatement ps = conn().prepareStatement(sql);
+        try (Connection c = conn();
+             PreparedStatement ps = c.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
-            while (rs.next()) result.add(buildBootcampClass(rs));
+            while (rs.next()) result.add(buildBootcampClass(rs, c));
         } catch (SQLException e) {
             throw new RuntimeException("findAll bootcamp failed: " + e.getMessage(), e);
         }
@@ -117,11 +125,23 @@ public class SqliteBootcampRepository implements BootcampRepository {
     public void delete(String classId) {
         // ON DELETE CASCADE removes bootcamp_enrolments rows automatically.
         String sql = "DELETE FROM bootcamp_classes WHERE class_id = ?";
-        try (PreparedStatement ps = conn().prepareStatement(sql)) {
+        try (Connection c = conn(); PreparedStatement ps = c.prepareStatement(sql)) {
             ps.setString(1, classId);
             ps.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException("delete bootcamp failed: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public boolean hasAnyClasses() {
+        String sql = "SELECT 1 FROM bootcamp_classes LIMIT 1";
+        try (Connection c = conn();
+             PreparedStatement ps = c.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            return rs.next();
+        } catch (SQLException e) {
+            throw new RuntimeException("hasAnyClasses failed: " + e.getMessage(), e);
         }
     }
 
@@ -136,13 +156,14 @@ public class SqliteBootcampRepository implements BootcampRepository {
     private void upsertClass(Connection c, BootcampClass bc) throws SQLException {
         String sql =
             "INSERT INTO bootcamp_classes " +
-            "(class_id, bootcamp_type, schedule, max_capacity, instructor_id) " +
-            "VALUES (?, ?, ?, ?, ?) " +
+            "(class_id, bootcamp_type, schedule, max_capacity, instructor_id, cancelled) " +
+            "VALUES (?, ?, ?, ?, ?, ?) " +
             "ON CONFLICT(class_id) DO UPDATE SET " +
             "  bootcamp_type = excluded.bootcamp_type, " +
             "  schedule = excluded.schedule, " +
             "  max_capacity = excluded.max_capacity, " +
-            "  instructor_id = excluded.instructor_id";
+            "  instructor_id = excluded.instructor_id, " +
+            "  cancelled = excluded.cancelled";
         try (PreparedStatement ps = c.prepareStatement(sql)) {
             ps.setString(1, bc.getClassId());
             ps.setString(2, bc.getType().name());
@@ -153,6 +174,7 @@ public class SqliteBootcampRepository implements BootcampRepository {
             } else {
                 ps.setNull(5, java.sql.Types.VARCHAR);
             }
+            ps.setInt(6, bc.isCancelled() ? 1 : 0);
             ps.executeUpdate();
         }
     }
@@ -196,12 +218,13 @@ public class SqliteBootcampRepository implements BootcampRepository {
      * Reconstruct a BootcampClass from a result-set row.
      * Wires instructor and participants by ID lookup.
      */
-    private BootcampClass buildBootcampClass(ResultSet rs) throws SQLException {
+    private BootcampClass buildBootcampClass(ResultSet rs, Connection c) throws SQLException {
         String       classId      = rs.getString("class_id");
         String       typeStr      = rs.getString("bootcamp_type");
         String       schedule     = rs.getString("schedule");
         int          maxCapacity  = rs.getInt("max_capacity");
         String       instructorId = rs.getString("instructor_id");  // may be NULL
+        boolean      cancelled    = rs.getInt("cancelled") == 1;
 
         BootcampType type;
         try {
@@ -220,20 +243,26 @@ public class SqliteBootcampRepository implements BootcampRepository {
                               .ifPresent(bc::assignInstructor);
         }
 
-        // Wire participants from enrolments table
-        List<String> participantIds = loadParticipantIds(classId);
+        // Wire participants from enrolments table — done BEFORE restoring
+        // cancelled status below, since enrolMember() now correctly
+        // refuses to enrol into an already-cancelled class. A class that
+        // was cancelled AFTER already having real enrolments must still
+        // have those enrolments restored on every reload.
+        List<String> participantIds = loadParticipantIds(classId, c);
         memberRepo.findByIds(participantIds).forEach(bc::enrolMember);
+
+        if (cancelled) bc.cancel();
 
         return bc;
     }
 
     /** Return the ordered list of member IDs enrolled in a given class. */
-    private List<String> loadParticipantIds(String classId) throws SQLException {
+    private List<String> loadParticipantIds(String classId, Connection c) throws SQLException {
         String sql =
             "SELECT member_id FROM bootcamp_enrolments " +
             "WHERE class_id = ? ORDER BY enrolled_at ASC";
         List<String> ids = new ArrayList<>();
-        try (PreparedStatement ps = conn().prepareStatement(sql)) {
+        try (PreparedStatement ps = c.prepareStatement(sql)) {
             ps.setString(1, classId);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) ids.add(rs.getString("member_id"));

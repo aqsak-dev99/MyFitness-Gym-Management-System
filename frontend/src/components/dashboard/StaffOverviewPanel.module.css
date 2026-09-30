@@ -1,0 +1,26 @@
+.card { display: flex; flex-direction: column; }
+.eyebrow { font-size: 0.85rem; font-weight: 700; color: var(--color-text-primary); margin-bottom: var(--dash-space-4); }
+
+.grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--dash-space-3); margin-bottom: var(--dash-space-4); }
+
+.category {
+  padding: var(--dash-space-3);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--dash-radius-md);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.count { font-size: 1.7rem; font-weight: 800; color: var(--color-text-primary); line-height: 1.1; margin-top: var(--dash-space-2); }
+.label { font-size: 0.75rem; color: var(--color-text-secondary); font-weight: 600; margin-bottom: var(--dash-space-2); }
+.idList { font-size: 0.68rem; color: var(--color-text-secondary); line-height: 1.5; word-break: break-word; }
+
+.proportionBar { display: flex; height: 8px; border-radius: 999px; overflow: hidden; margin-bottom: var(--dash-space-3); }
+
+.summary { font-size: 0.8rem; color: var(--color-text-secondary); }
+.summary strong { color: var(--color-text-primary); font-weight: 800; }
+
+@media (max-width: 640px) {
+  .grid { grid-template-columns: 1fr; }
+}

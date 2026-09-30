@@ -51,9 +51,9 @@ public class DocumentService {
      * chunk has a vector ready for search. Nothing downstream has to
      * check whether embedding "happened to work."
      */
-    public Document uploadDocument(String filename, String content) {
+    public Document uploadDocument(String filename, String content, String audience) {
         String documentId = "DOC-" + UUID.randomUUID();
-        Document document = new Document(documentId, filename, content, LocalDate.now());
+        Document document = new Document(documentId, filename, content, LocalDate.now(), audience);
         documentRepo.save(document);
 
         List<String> chunkTexts = chunkingService.chunk(content);

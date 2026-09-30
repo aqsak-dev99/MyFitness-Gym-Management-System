@@ -1,0 +1,124 @@
+.wrapper {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 60;
+  cursor: pointer;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+}
+.wrapper:focus-visible {
+  outline: 2px solid var(--dash-accent-green);
+  outline-offset: 6px;
+  border-radius: 50%;
+}
+
+.glow {
+  position: absolute;
+  bottom: 10px;
+  right: 14px;
+  width: 92px;
+  height: 92px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(52, 224, 161, 0.45), transparent 72%);
+  filter: blur(16px);
+  z-index: -1;
+  pointer-events: none;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+.wrapper:hover .glow {
+  transform: scale(1.25);
+  background: radial-gradient(circle, rgba(52, 224, 161, 0.65), transparent 72%);
+}
+
+/* Image's real aspect ratio (0.77) is preserved via height:auto — the
+   asset was trimmed to its actual content bounds (removing baked-in
+   padding), so this width now maps directly to the robot's real
+   visual footprint, not an oversized invisible canvas. */
+.mascotImage {
+  width: 108px;
+  height: auto;
+  display: block;
+  filter: drop-shadow(0 8px 20px rgba(52, 224, 161, 0.5));
+  transition: filter 0.2s ease;
+  transform-origin: 60% 90%;
+}
+
+.idle {
+  animation: bob 3.6s ease-in-out infinite;
+}
+
+/* One static frame can't produce a literal arm-wave — this reads as
+   an energetic, happy wobble instead: a quick alternating tilt plus a
+   tiny scale pulse, timed like a wave's rhythm rather than a slow,
+   awkward whole-body rotation. */
+.wave {
+  animation: wave 0.5s ease-in-out infinite;
+  filter: drop-shadow(0 10px 24px rgba(52, 224, 161, 0.7));
+}
+
+@keyframes bob {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50%      { transform: translateY(-8px) rotate(0deg); }
+}
+
+@keyframes wave {
+  0%   { transform: translateY(-8px) rotate(-3deg) scale(1); }
+  25%  { transform: translateY(-10px) rotate(2deg) scale(1.02); }
+  50%  { transform: translateY(-8px) rotate(-3deg) scale(1); }
+  75%  { transform: translateY(-10px) rotate(2deg) scale(1.02); }
+  100% { transform: translateY(-8px) rotate(-3deg) scale(1); }
+}
+
+.speechBubble {
+  position: absolute;
+  bottom: 122px;
+  right: 0;
+  background: linear-gradient(165deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-top-color: rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+  padding: 0.7rem 1.1rem;
+  border-radius: 14px;
+  color: var(--dash-text);
+  font-size: 0.88rem;
+  font-weight: 700;
+  white-space: nowrap;
+  box-shadow: 0 18px 40px -8px rgba(0, 0, 0, 0.55), 0 0 20px rgba(52, 224, 161, 0.15);
+  animation: bubbleIn 0.2s ease;
+}
+.speechBubble::after {
+  content: '';
+  position: absolute;
+  bottom: -6px;
+  right: 32px;
+  width: 12px;
+  height: 12px;
+  background: linear-gradient(165deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+  border-right: 1px solid rgba(255, 255, 255, 0.14);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+  transform: rotate(45deg);
+}
+
+@keyframes bubbleIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.highlightPulse {
+  animation: pulse 1.4s ease;
+}
+@keyframes pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(52, 224, 161, 0.5); }
+  60%  { box-shadow: 0 0 0 14px rgba(52, 224, 161, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(52, 224, 161, 0); }
+}
+
+@media (max-width: 640px) {
+  .wrapper { bottom: 14px; right: 14px; }
+  .mascotImage { width: 68px; }
+  .glow { width: 58px; height: 58px; }
+  .speechBubble { bottom: 82px; font-size: 0.78rem; padding: 0.55rem 0.85rem; }
+}

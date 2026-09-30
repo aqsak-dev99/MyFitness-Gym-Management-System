@@ -1,11 +1,11 @@
 package com.gymmanagement.repository;
 
-import com.gymmanagement.db.DatabaseManager;
 import com.gymmanagement.model.DocumentChunk;
 import com.gymmanagement.model.ScoredChunk;
 
 import org.springframework.stereotype.Repository;
 
+import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -16,8 +16,14 @@ import java.util.List;
 @Repository
 public class PostgresDocumentChunkRepository implements DocumentChunkRepository {
 
-    private Connection conn() {
-        return DatabaseManager.getInstance().getConnection();
+    private final DataSource dataSource;
+
+    public PostgresDocumentChunkRepository(DataSource dataSource) {
+        this.dataSource = dataSource;
+    }
+
+    private Connection conn() throws SQLException {
+        return dataSource.getConnection();
     }
 
     @Override
@@ -29,7 +35,7 @@ public class PostgresDocumentChunkRepository implements DocumentChunkRepository 
             "  document_id = excluded.document_id, " +
             "  chunk_index = excluded.chunk_index, " +
             "  content = excluded.content";
-        try (PreparedStatement ps = conn().prepareStatement(sql)) {
+        try (Connection c = conn(); PreparedStatement ps = c.prepareStatement(sql)) {
             ps.setString(1, chunk.getChunkId());
             ps.setString(2, chunk.getDocumentId());
             ps.setInt(3, chunk.getChunkIndex());
@@ -45,7 +51,7 @@ public class PostgresDocumentChunkRepository implements DocumentChunkRepository 
     public List<DocumentChunk> findByDocumentId(String documentId) {
         String sql = "SELECT * FROM document_chunks WHERE document_id = ? ORDER BY chunk_index ASC";
         List<DocumentChunk> result = new ArrayList<>();
-        try (PreparedStatement ps = conn().prepareStatement(sql)) {
+        try (Connection c = conn(); PreparedStatement ps = c.prepareStatement(sql)) {
             ps.setString(1, documentId);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
@@ -68,7 +74,7 @@ public class PostgresDocumentChunkRepository implements DocumentChunkRepository 
     @Override
     public void saveEmbedding(String chunkId, float[] embedding) {
         String sql = "UPDATE document_chunks SET embedding = ?::vector WHERE chunk_id = ?";
-        try (PreparedStatement ps = conn().prepareStatement(sql)) {
+        try (Connection c = conn(); PreparedStatement ps = c.prepareStatement(sql)) {
             ps.setString(1, toVectorLiteral(embedding));
             ps.setString(2, chunkId);
             int updated = ps.executeUpdate();
@@ -98,7 +104,7 @@ public class PostgresDocumentChunkRepository implements DocumentChunkRepository 
             "ORDER BY distance ASC " +
             "LIMIT ?";
         List<ScoredChunk> result = new ArrayList<>();
-        try (PreparedStatement ps = conn().prepareStatement(sql)) {
+        try (Connection c = conn(); PreparedStatement ps = c.prepareStatement(sql)) {
             ps.setString(1, toVectorLiteral(queryEmbedding));
             ps.setString(2, documentId);
             ps.setInt(3, topK);
@@ -125,7 +131,7 @@ public class PostgresDocumentChunkRepository implements DocumentChunkRepository 
      * ::vector directly in the SQL above — deliberately not pulling in
      * the separate pgvector-java driver library, which would need its
      * own connection-level type registration on top of the plain JDBC
-     * DriverManager connection DatabaseManager already hands out.
+     * connections this pool hands out.
      */
     private String toVectorLiteral(float[] embedding) {
         StringBuilder sb = new StringBuilder("[");

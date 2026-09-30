@@ -1,0 +1,69 @@
+.card { display: flex; flex-direction: column; height: 100%; }
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--dash-space-3);
+  margin-bottom: var(--dash-space-4);
+}
+
+.badgeIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 11px;
+  background: var(--dash-accent-green-dim);
+  flex-shrink: 0;
+}
+
+.eyebrow {
+  font-size: 0.76rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--dash-text-muted);
+  font-weight: 700;
+}
+
+.status {
+  margin-left: auto;
+  padding: 0.25rem 0.7rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+.statusActive { background: var(--dash-accent-green-dim); color: var(--dash-accent-green); }
+.statusFrozen { background: var(--dash-accent-red-dim); color: var(--dash-accent-red); }
+
+.body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--dash-space-4);
+  flex: 1;
+  justify-content: center;
+}
+
+.stats {
+  display: flex;
+  width: 100%;
+  gap: var(--dash-space-3);
+}
+
+.stat { display: flex; flex-direction: column; flex: 1; text-align: center; }
+
+.statValue {
+  font-size: 1.35rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--dash-text);
+  line-height: 1.1;
+}
+
+.statLabel {
+  font-size: 0.72rem;
+  color: var(--dash-text-muted);
+  margin-top: 2px;
+  font-weight: 500;
+}

@@ -1,0 +1,52 @@
+.title { color: var(--dash-text); font-size: 2rem; font-weight: 800; letter-spacing: -0.02em; margin: 0 0 0.4rem; }
+.subtitle { color: var(--dash-text-muted); margin: 0 0 var(--dash-space-5); }
+
+.modeTabs { display: flex; gap: var(--dash-space-2); margin-bottom: var(--dash-space-4); }
+.modeTab {
+  padding: 0.55rem 1.1rem; border-radius: 10px; border: 1px solid var(--dash-glass-border);
+  background: rgba(255,255,255,0.04); color: var(--dash-text-muted); font-weight: 700; font-size: 0.85rem; cursor: pointer;
+}
+.modeTabActive { color: var(--dash-accent-green); background: var(--dash-accent-green-dim); border-color: transparent; }
+
+.docSelector { margin-bottom: var(--dash-space-4); }
+.docHint, .docError { font-size: 0.85rem; color: var(--dash-text-muted); margin: 0; }
+.docError { color: var(--dash-accent-red); }
+.docSelect {
+  width: 100%; padding: 0.6rem 0.8rem; border-radius: 10px; border: 1px solid var(--dash-glass-border);
+  background: rgba(255,255,255,0.04); color: var(--dash-text); font-size: 0.9rem;
+}
+
+.inputRow {
+  display: flex; align-items: center; gap: var(--dash-space-3);
+  background: rgba(255,255,255,0.04); border: 1px solid var(--dash-glass-border);
+  border-radius: var(--dash-radius-md); padding: 0.8rem 1rem;
+}
+.questionInput {
+  flex: 1; background: none; border: none; color: var(--dash-text); font-size: 0.95rem;
+}
+.questionInput:focus { outline: none; }
+.questionInput::placeholder { color: var(--dash-text-muted); }
+.questionInput:disabled { opacity: 0.5; }
+
+.askBtn {
+  padding: 0.55rem 1.1rem; border-radius: 9px; border: none;
+  background: linear-gradient(135deg, #6fe0a8, #2f9c6b); color: #06170e;
+  font-weight: 700; font-size: 0.85rem; cursor: pointer; white-space: nowrap;
+}
+.askBtn:disabled { opacity: 0.55; cursor: not-allowed; }
+
+.error { color: var(--dash-accent-red); font-size: 0.85rem; margin-top: var(--dash-space-3); }
+
+.resultArea { margin-top: var(--dash-space-4); padding-top: var(--dash-space-4); border-top: 1px solid rgba(255,255,255,0.06); }
+.answer { color: var(--dash-text); font-size: 0.95rem; line-height: 1.65; margin: 0; }
+
+.citations { margin-top: var(--dash-space-4); display: flex; flex-direction: column; gap: var(--dash-space-2); }
+.citationsLabel {
+  font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em;
+  color: var(--dash-text-muted); font-weight: 700;
+}
+.citationItem {
+  font-size: 0.83rem; color: var(--dash-text-muted); line-height: 1.5;
+  background: rgba(255,255,255,0.03); padding: 0.6rem 0.8rem; border-radius: 8px;
+}
+.citationIndex { color: var(--dash-accent-blue); font-weight: 700; }

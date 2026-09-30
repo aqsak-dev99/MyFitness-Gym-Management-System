@@ -1,0 +1,81 @@
+.banner {
+  position: relative;
+  width: 100%;
+  height: 260px;
+  overflow: hidden;
+  margin-bottom: var(--dash-space-4);
+  /* Square top corners — flush against the viewport's top edge and the
+     sidebar, where a rounded corner would just look like a stray gap.
+     Rounded only where it transitions into the rest of the page below. */
+  border-radius: 0 0 var(--dash-radius-lg) var(--dash-radius-lg);
+}
+
+.image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Real, strong scrim — this photo is bright (light wood, big windows),
+   so white overlay text needs deliberate contrast, not a token gesture.
+   Self-contained within the banner box, so this looks identical in
+   light and dark mode by construction — it never depends on the
+   page's own theme colors, only on its own fixed gradient. */
+.scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.55) 65%, rgba(0,0,0,0.75) 100%);
+}
+
+.content {
+  position: absolute;
+  left: var(--dash-space-4);
+  bottom: var(--dash-space-4);
+  z-index: 1;
+}
+
+.greeting {
+  color: #ffffff;
+  font-size: 2.1rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin: 0 0 6px;
+  text-shadow: 0 2px 12px rgba(0,0,0,0.4);
+}
+
+.subtitle {
+  color: rgba(255,255,255,0.9);
+  font-size: 1rem;
+  margin: 0;
+  text-shadow: 0 1px 8px rgba(0,0,0,0.4);
+}
+
+.dateCard {
+  position: absolute;
+  top: var(--dash-space-3);
+  right: var(--dash-space-3);
+  z-index: 1;
+  background: rgba(0,0,0,0.45);
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: var(--dash-radius-md);
+  padding: 10px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.dateLine { color: #ffffff; font-size: 0.82rem; font-weight: 600; }
+.timeLine { color: rgba(255,255,255,0.75); font-size: 0.78rem; }
+
+/* PageShell's heroBannerSlot handles the sidebar-offset/breakpoint
+   logic now — the banner itself no longer needs any margin math at all. */
+
+@media (max-width: 700px) {
+  .banner { height: 200px; }
+  .greeting { font-size: 1.5rem; }
+  .dateCard { display: none; }
+}

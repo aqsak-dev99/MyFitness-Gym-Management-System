@@ -6,6 +6,7 @@ import com.gymmanagement.model.membership.BootcampType;
 import com.gymmanagement.repository.BootcampRepository;
 import com.gymmanagement.repository.SqliteBootcampRepository;
 import com.gymmanagement.repository.SqliteMemberRepository;
+import com.gymmanagement.repository.SqliteStaffRepository;
 import com.gymmanagement.repository.SqliteUserRepository;
 import com.gymmanagement.service.AuthService;
 import com.gymmanagement.service.MemberService;
@@ -13,33 +14,54 @@ import com.gymmanagement.service.MembershipService;
 import com.gymmanagement.service.TrainerService;
 import com.gymmanagement.ui.GymConsoleApp;
 
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
+
 import java.util.List;
 
 /**
- * Main.java — application entry point.
+ * Main.java — application entry point for the plain console app (a
+ * completely separate entry point from MyFitnessApplication/Spring Boot
+ * — see the class-level notes on BootcampSeeder for why that distinction
+ * matters).
  *
- * Changes from JSON version:
- *   1. Repositories are now SQLite-backed (SqliteMemberRepository,
- *      SqliteBootcampRepository) — no JSON files, no shutdown flush.
- *   2. DatabaseManager.getInstance() opens gym.db and creates the schema
- *      before any repository is constructed.
+ * Updated for the HikariCP migration: this runs entirely outside
+ * Spring's context, so it can't have a DataSource autowired the way
+ * every @Repository bean now does. It builds its own small
+ * HikariDataSource directly instead — same pool library, same
+ * DATABASE_URL parsing (DatabaseManager.resolveConnectionParts(),
+ * unchanged), just constructed by hand here since there's no Spring
+ * container to do it for this entry point.
+ *
+ * Changes from the JSON version further back:
+ *   1. Repositories are SQLite/Postgres-backed — no JSON files, no
+ *      shutdown flush.
+ *   2. Schema creation now happens once, right after the DataSource is
+ *      built below — same statements DataSourceConfig runs for the
+ *      real Spring app, just invoked directly here instead.
  *   3. SqliteBootcampRepository receives SqliteMemberRepository directly
  *      (not a generic Supplier<List<Member>>) because it needs findByIds()
  *      which is not on the MemberRepository interface.
- *   4. Seed guard uses bootcampRepo.findAll().isEmpty() — when gym.db
- *      already has rows from a previous run, no seed data is inserted.
- *   5. Shutdown hook closes the DB connection cleanly (flushes WAL).
+ *   4. Seed guard uses bootcampRepo.hasAnyClasses() — the same lightweight
+ *      check the real seeder now uses, rather than a full findAll().
+ *   5. Shutdown hook closes the pool cleanly, not a single Connection.
  *
  * Everything else (services, UI, business logic) is unchanged.
  */
 public class Main {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
 
-        // ── 1. Initialise the database ─────────────────────────────────────────
-        // Opens gym.db (creates it on first run), enables FK enforcement,
-        // and runs CREATE TABLE IF NOT EXISTS for all five tables.
-        DatabaseManager db = DatabaseManager.getInstance();
+        // ── 1. Build a small HikariCP pool for this standalone entry point ──
+        String[] parts = DatabaseManager.resolveConnectionParts();
+        HikariConfig config = new HikariConfig();
+        config.setJdbcUrl(parts[0]);
+        config.setUsername(parts[1]);
+        config.setPassword(parts[2]);
+        config.setMaximumPoolSize(3);   // this console app is single-user by nature
+        config.setMinimumIdle(1);
+        HikariDataSource dataSource = new HikariDataSource(config);
+        com.gymmanagement.config.DataSourceConfig.runSchemaCreation(dataSource);
 
         // ── 2. Build staff lists ───────────────────────────────────────────────
         List<FullTimeStaff> fullTimeStaff = buildFullTimeStaff();
@@ -47,35 +69,35 @@ public class Main {
         List<Instructor>    instructors   = buildInstructors();
 
         // ── 3. Repositories ────────────────────────────────────────────────────
-        SqliteMemberRepository memberRepo = new SqliteMemberRepository();
-        SqliteUserRepository   userRepo   = new SqliteUserRepository();
+        SqliteMemberRepository memberRepo = new SqliteMemberRepository(dataSource);
+        SqliteUserRepository   userRepo   = new SqliteUserRepository(dataSource);
 
         // SqliteBootcampRepository needs:
         //   memberRepo   — to resolve participant IDs → Member objects
         //   instructors  — to resolve instructor_id → Instructor objects
         SqliteBootcampRepository bootcampRepo =
-                new SqliteBootcampRepository(memberRepo, () -> instructors);
+                new SqliteBootcampRepository(memberRepo, () -> instructors, dataSource);
+        SqliteStaffRepository  staffRepo   = new SqliteStaffRepository(dataSource);
 
         // ── 4. Wire services ───────────────────────────────────────────────────
         MemberService     memberService     = new MemberService(memberRepo);
         TrainerService    trainerService    = new TrainerService(fullTimeStaff,
                                                                   partTimeStaff,
-                                                                  instructors);
+                                                                  instructors,
+                                                                  staffRepo);
         MembershipService membershipService = new MembershipService(memberRepo, bootcampRepo);
         AuthService        authService      = new AuthService(userRepo);
 
         // ── 5. Seed bootcamp classes only on first run ─────────────────────────
-        // bootcampRepo.findAll() queries the DB — returns empty list when the
-        // table is empty (first run).  On subsequent runs the rows exist and
-        // seeding is skipped, preventing duplicates.
-        if (bootcampRepo.findAll().isEmpty()) {
+        // hasAnyClasses() is a single lightweight existence query — the same
+        // fix applied to the real Spring seeder, not a full findAll().
+        if (!bootcampRepo.hasAnyClasses()) {
             seedBootcampClasses(bootcampRepo);
         }
 
-        // ── 6. Shutdown hook — close DB connection on exit ─────────────────────
-        // SQLite WAL mode may buffer writes; closing the connection flushes them.
+        // ── 6. Shutdown hook — close the pool on exit ──────────────────────────
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            db.close();
+            dataSource.close();
             System.out.println("[App] Shutdown complete.");
         }));
 

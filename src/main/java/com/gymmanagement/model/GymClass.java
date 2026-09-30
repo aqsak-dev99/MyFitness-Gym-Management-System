@@ -11,6 +11,7 @@ public class GymClass {
     private int           maxCapacity;
     private Instructor    instructor;
     private List<Member>  participants;
+    private boolean       cancelled;   // soft state — see cancel()/reactivate()
 
     public GymClass(String classId, String className,
                     String schedule, int maxCapacity) {
@@ -21,6 +22,7 @@ public class GymClass {
         this.schedule     = schedule;
         this.maxCapacity  = maxCapacity;
         this.participants = new ArrayList<>();
+        this.cancelled    = false;
     }
 
     // ── getters / setters ─────────────────────────────────
@@ -32,13 +34,39 @@ public class GymClass {
     public List<Member> getParticipants(){ return new ArrayList<>(participants); }
     public int  getCurrentEnrolments()   { return participants.size(); }
     public boolean isFull()              { return participants.size() >= maxCapacity; }
+    public boolean isCancelled()         { return cancelled;    }
 
     public void setSchedule(String schedule)     { this.schedule    = schedule;    }
-    public void setMaxCapacity(int maxCapacity)  { this.maxCapacity = maxCapacity; }
+
+    /**
+     * Rejects shrinking capacity below the number of people already
+     * enrolled — a genuine invalid state (more participants than the
+     * class can hold), not just a cosmetic concern. Real enrolment
+     * count, not a caller-supplied one, so this can't be bypassed by a
+     * stale client value.
+     */
+    public void setMaxCapacity(int maxCapacity) {
+        if (maxCapacity < participants.size())
+            throw new IllegalArgumentException(
+                "Cannot set capacity to " + maxCapacity + " — "
+                + participants.size() + " members are already enrolled.");
+        this.maxCapacity = maxCapacity;
+    }
+
+    // ── cancellation status ────────────────────────────────
+    /**
+     * Soft-cancellation, matching Member.deactivate()/reactivate() and
+     * Membership.freeze()/unfreeze() — the class row is never deleted,
+     * so existing enrolment history stays intact. Idempotent, same as
+     * those other two.
+     */
+    public void cancel()     { this.cancelled = true;  }
+    public void reactivate() { this.cancelled = false; }
 
     // ── enrol / remove ────────────────────────────────────
     public boolean enrolMember(Member member) {
-        if (member == null) return false;
+        if (member == null)                      return false;
+        if (cancelled)                            return false;
         if (isFull())                            return false;
         if (participants.contains(member))       return false;
         participants.add(member);

@@ -197,4 +197,84 @@ public final class DatabaseSchema {
     // — only an explicit ALTER can.
     public static final String ADD_FITNESS_GOAL_COLUMN =
         "ALTER TABLE members ADD COLUMN IF NOT EXISTS fitness_goal TEXT";
+
+    /**
+     * Soft-deactivation for members — explicitly NOT a hard delete.
+     * Existing DELETE /api/members/{id} remains available separately,
+     * but the Admin member-management UI uses this instead, so
+     * historical membership/enrolment data referencing a deactivated
+     * member's ID stays intact. Defaults every existing row to active
+     * (1) — Postgres backfills NOT NULL DEFAULT on ADD COLUMN as a
+     * single fast metadata operation, no manual UPDATE needed.
+     */
+    public static final String ADD_ACTIVE_COLUMN =
+        "ALTER TABLE members ADD COLUMN IF NOT EXISTS active INTEGER NOT NULL DEFAULT 1";
+
+    /**
+     * Soft-cancellation for bootcamp classes — same reasoning as
+     * ADD_ACTIVE_COLUMN above: a hard DELETE would cascade-remove
+     * bootcamp_enrolments rows (or be blocked by the FK entirely),
+     * either way losing real enrolment history. This preserves it.
+     */
+    public static final String ADD_CANCELLED_COLUMN =
+        "ALTER TABLE bootcamp_classes ADD COLUMN IF NOT EXISTS cancelled INTEGER NOT NULL DEFAULT 0";
+
+    /**
+     * Real membership billing — the due date genuinely advances on
+     * payment (see Membership.advancePaymentDueDate()), rather than
+     * requiring a separate lookup against payment history to know if
+     * the current period was paid. Nullable: PayAsYouGoMembership has
+     * no recurring due date at all (pay-per-session), so its rows
+     * legitimately have NULL here, not a fabricated date.
+     */
+    public static final String ADD_NEXT_PAYMENT_DUE_DATE_COLUMN =
+        "ALTER TABLE memberships ADD COLUMN IF NOT EXISTS next_payment_due_date DATE";
+
+    /**
+     * Admin/Member RAG separation. Every existing document defaults to
+     * 'MEMBER' (preserving current behavior for anything already
+     * uploaded) — nothing becomes invisible to Members that was visible
+     * before this column existed. New Admin-only documents are
+     * uploaded with audience='ADMIN' explicitly.
+     */
+    public static final String ADD_DOCUMENT_AUDIENCE_COLUMN =
+        "ALTER TABLE documents ADD COLUMN IF NOT EXISTS audience TEXT NOT NULL DEFAULT 'MEMBER'";
+
+    // ── staff ──────────────────────────────────────────────
+    // One table for all three staff categories (FullTimeStaff,
+    // PartTimeStaff, Instructor), using the same "discriminator column +
+    // nullable type-specific columns" pattern already proven for
+    // memberships above — avoids three near-identical tables for what's
+    // a small dataset in practice.
+    //
+    // staff_type: 'FULL_TIME' | 'PART_TIME' | 'INSTRUCTOR'
+    // salary / work_schedule: used by FULL_TIME and INSTRUCTOR rows
+    //   (Instructor extends FullTimeStaff in the domain model — same
+    //   two fields apply), null for PART_TIME rows.
+    // specialisation: INSTRUCTOR only, null otherwise.
+    // hourly_rate / hours_per_week / shift_pattern: PART_TIME only,
+    //   null otherwise.
+    //
+    // This table was missing entirely until now — staff/instructor data
+    // was previously supplied only as hardcoded Spring @Bean values in
+    // StaffConfig (see that class's own comments), meaning nothing
+    // created via the API ever survived a restart. This table, plus
+    // SqliteStaffRepository and StaffSeeder, is the actual fix.
+    public static final String CREATE_STAFF =
+        "CREATE TABLE IF NOT EXISTS staff (" +
+        "  staff_id        TEXT PRIMARY KEY," +
+        "  person_id       TEXT NOT NULL," +
+        "  staff_type      TEXT NOT NULL," +
+        "  name            TEXT NOT NULL," +
+        "  email           TEXT NOT NULL," +
+        "  phone           TEXT," +
+        "  role            TEXT NOT NULL," +
+        "  available       INTEGER NOT NULL DEFAULT 1," +
+        "  salary          REAL," +
+        "  work_schedule   TEXT," +
+        "  specialisation  TEXT," +
+        "  hourly_rate     REAL," +
+        "  hours_per_week  INTEGER," +
+        "  shift_pattern   TEXT" +
+        ")";
 }

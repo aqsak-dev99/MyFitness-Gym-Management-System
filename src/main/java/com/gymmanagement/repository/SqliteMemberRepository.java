@@ -1,6 +1,5 @@
 package com.gymmanagement.repository;
 
-import com.gymmanagement.db.DatabaseManager;
 import com.gymmanagement.model.Member;
 import com.gymmanagement.model.Payment;
 import com.gymmanagement.model.membership.Membership;
@@ -10,13 +9,17 @@ import com.gymmanagement.model.membership.StudentSaverMembership;
 
 import org.springframework.stereotype.Repository;
 
+import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -55,8 +58,14 @@ import java.util.Optional;
 @Repository
 public class SqliteMemberRepository implements MemberRepository {
 
-    private Connection conn() {
-        return DatabaseManager.getInstance().getConnection();
+    private final DataSource dataSource;
+
+    public SqliteMemberRepository(DataSource dataSource) {
+        this.dataSource = dataSource;
+    }
+
+    private Connection conn() throws SQLException {
+        return dataSource.getConnection();
     }
 
     // ══════════════════════════════════════════════════════
@@ -65,29 +74,33 @@ public class SqliteMemberRepository implements MemberRepository {
 
     @Override
     public void save(Member member) {
-        Connection c = conn();
-        try {
-            c.setAutoCommit(false);
-            upsertMember(c, member);
-            upsertMembership(c, member);
-            upsertPayments(c, member);
-            c.commit();
-        } catch (SQLException e) {
-            rollback(c);
+        try (Connection c = conn()) {
+            try {
+                c.setAutoCommit(false);
+                upsertMember(c, member);
+                upsertMembership(c, member);
+                upsertPayments(c, member);
+                c.commit();
+            } catch (SQLException e) {
+                rollback(c);
+                throw new RuntimeException("Failed to save member " + member.getMemberId()
+                                           + ": " + e.getMessage(), e);
+            } finally {
+                restoreAutoCommit(c);
+            }
+        } catch (SQLException outer) {
             throw new RuntimeException("Failed to save member " + member.getMemberId()
-                                       + ": " + e.getMessage(), e);
-        } finally {
-            restoreAutoCommit(c);
+                                       + ": " + outer.getMessage(), outer);
         }
     }
 
     @Override
     public Optional<Member> findById(String memberId) {
         String sql = "SELECT * FROM members WHERE member_id = ?";
-        try (PreparedStatement ps = conn().prepareStatement(sql)) {
+        try (Connection c = conn(); PreparedStatement ps = c.prepareStatement(sql)) {
             ps.setString(1, memberId);
             try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) return Optional.of(buildMember(rs));
+                if (rs.next()) return Optional.of(buildMember(rs, c));
             }
         } catch (SQLException e) {
             throw new RuntimeException("findById failed: " + e.getMessage(), e);
@@ -98,10 +111,10 @@ public class SqliteMemberRepository implements MemberRepository {
     @Override
     public Optional<Member> findByEmail(String email) {
         String sql = "SELECT * FROM members WHERE LOWER(email) = LOWER(?)";
-        try (PreparedStatement ps = conn().prepareStatement(sql)) {
+        try (Connection c = conn(); PreparedStatement ps = c.prepareStatement(sql)) {
             ps.setString(1, email);
             try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) return Optional.of(buildMember(rs));
+                if (rs.next()) return Optional.of(buildMember(rs, c));
             }
         } catch (SQLException e) {
             throw new RuntimeException("findByEmail failed: " + e.getMessage(), e);
@@ -113,9 +126,27 @@ public class SqliteMemberRepository implements MemberRepository {
     public List<Member> findAll() {
         String sql = "SELECT * FROM members ORDER BY name";
         List<Member> result = new ArrayList<>();
-        try (PreparedStatement ps = conn().prepareStatement(sql);
+        Map<String, Member> membersById = new HashMap<>();
+
+        try (Connection c = conn();
+             PreparedStatement ps = c.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
-            while (rs.next()) result.add(buildMember(rs));
+            while (rs.next()) {
+                Member member = buildMemberBaseFields(rs);
+                result.add(member);
+                membersById.put(member.getMemberId(), member);
+            }
+
+            // The actual fix: 2 more queries total here, not 2 per member —
+            // see loadMembershipsBatch()/loadPaymentsBatch() for why this
+            // was the real cause of every admin page but Staff being slow.
+            List<String> memberIds = new ArrayList<>(membersById.keySet());
+            Map<String, Membership> memberships = loadMembershipsBatch(memberIds, c);
+            for (Member member : result) {
+                Membership membership = memberships.get(member.getMemberId());
+                if (membership != null) member.setMembership(membership);
+            }
+            loadPaymentsBatch(memberIds, membersById, c);
         } catch (SQLException e) {
             throw new RuntimeException("findAll failed: " + e.getMessage(), e);
         }
@@ -127,7 +158,7 @@ public class SqliteMemberRepository implements MemberRepository {
         // ON DELETE CASCADE in the schema removes memberships, payments,
         // and bootcamp_enrolments rows automatically.
         String sql = "DELETE FROM members WHERE member_id = ?";
-        try (PreparedStatement ps = conn().prepareStatement(sql)) {
+        try (Connection c = conn(); PreparedStatement ps = c.prepareStatement(sql)) {
             ps.setString(1, memberId);
             ps.executeUpdate();
         } catch (SQLException e) {
@@ -138,7 +169,7 @@ public class SqliteMemberRepository implements MemberRepository {
     @Override
     public boolean existsById(String memberId) {
         String sql = "SELECT 1 FROM members WHERE member_id = ? LIMIT 1";
-        try (PreparedStatement ps = conn().prepareStatement(sql)) {
+        try (Connection c = conn(); PreparedStatement ps = c.prepareStatement(sql)) {
             ps.setString(1, memberId);
             try (ResultSet rs = ps.executeQuery()) {
                 return rs.next();
@@ -161,15 +192,16 @@ public class SqliteMemberRepository implements MemberRepository {
     private void upsertMember(Connection c, Member member) throws SQLException {
         String sql =
             "INSERT INTO members " +
-            "(member_id, person_id, name, email, phone, registration_date, fitness_goal) " +
-            "VALUES (?, ?, ?, ?, ?, ?, ?) " +
+            "(member_id, person_id, name, email, phone, registration_date, fitness_goal, active) " +
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?) " +
             "ON CONFLICT(member_id) DO UPDATE SET " +
             "  person_id = excluded.person_id, " +
             "  name = excluded.name, " +
             "  email = excluded.email, " +
             "  phone = excluded.phone, " +
             "  registration_date = excluded.registration_date, " +
-            "  fitness_goal = excluded.fitness_goal";
+            "  fitness_goal = excluded.fitness_goal, " +
+            "  active = excluded.active";
         try (PreparedStatement ps = c.prepareStatement(sql)) {
             ps.setString(1, member.getMemberId());
             ps.setString(2, member.getPersonId());
@@ -178,6 +210,7 @@ public class SqliteMemberRepository implements MemberRepository {
             ps.setString(5, member.getPhone());
             ps.setString(6, member.getRegistrationDate().toString());
             ps.setString(7, member.getFitnessGoal());   // OK if null
+            ps.setInt(8, member.isActive() ? 1 : 0);
             ps.executeUpdate();
         }
     }
@@ -203,10 +236,19 @@ public class SqliteMemberRepository implements MemberRepository {
         String     extraData = buildExtraData(m);
 
         String sql =
-            "INSERT OR REPLACE INTO memberships " +
+            "INSERT INTO memberships " +
             "(membership_id, member_id, membership_type, start_date, end_date, " +
-            " monthly_fee, frozen, extra_data) " +
-            "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+            " monthly_fee, frozen, extra_data, next_payment_due_date) " +
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) " +
+            "ON CONFLICT (member_id) DO UPDATE SET " +
+            "  membership_id   = EXCLUDED.membership_id, " +
+            "  membership_type = EXCLUDED.membership_type, " +
+            "  start_date      = EXCLUDED.start_date, " +
+            "  end_date        = EXCLUDED.end_date, " +
+            "  monthly_fee     = EXCLUDED.monthly_fee, " +
+            "  frozen          = EXCLUDED.frozen, " +
+            "  extra_data      = EXCLUDED.extra_data, " +
+            "  next_payment_due_date = EXCLUDED.next_payment_due_date";
         try (PreparedStatement ps = c.prepareStatement(sql)) {
             ps.setString(1, m.getMembershipId());
             ps.setString(2, member.getMemberId());
@@ -216,6 +258,11 @@ public class SqliteMemberRepository implements MemberRepository {
             ps.setDouble(6, m.getMonthlyFee());
             ps.setInt   (7, m.isFrozen() ? 1 : 0);
             ps.setString(8, extraData);
+            if (m.getNextPaymentDueDate() != null) {
+                ps.setDate(9, java.sql.Date.valueOf(m.getNextPaymentDueDate()));
+            } else {
+                ps.setNull(9, java.sql.Types.DATE);
+            }
             ps.executeUpdate();
         }
     }
@@ -228,9 +275,10 @@ public class SqliteMemberRepository implements MemberRepository {
         if (member.getPaymentHistory().isEmpty()) return;
 
         String sql =
-            "INSERT OR IGNORE INTO payments " +
+            "INSERT INTO payments " +
             "(payment_id, member_id, amount, description, payment_date, status) " +
-            "VALUES (?, ?, ?, ?, ?, ?)";
+            "VALUES (?, ?, ?, ?, ?, ?) " +
+            "ON CONFLICT (payment_id) DO NOTHING";
         try (PreparedStatement ps = c.prepareStatement(sql)) {
             for (Payment p : member.getPaymentHistory()) {
                 ps.setString(1, p.getPaymentId());
@@ -250,10 +298,13 @@ public class SqliteMemberRepository implements MemberRepository {
     // ══════════════════════════════════════════════════════
 
     /**
-     * Reconstruct a Member from a ResultSet row.
-     * Eagerly loads the membership and payment history via additional queries.
+     * Reconstruct a Member's own columns only — no membership, no payment
+     * history. Extracted so findAll()/findByIds() can build every member's
+     * base fields from one query, then batch-load memberships and payments
+     * for all of them in two more queries total, instead of buildMember()'s
+     * per-row pattern multiplying into 2 extra queries for every member.
      */
-    private Member buildMember(ResultSet rs) throws SQLException {
+    private Member buildMemberBaseFields(ResultSet rs) throws SQLException {
         String    memberId         = rs.getString("member_id");
         String    personId         = rs.getString("person_id");
         String    name             = rs.getString("name");
@@ -261,42 +312,71 @@ public class SqliteMemberRepository implements MemberRepository {
         String    phone            = rs.getString("phone");
         LocalDate registrationDate = LocalDate.parse(rs.getString("registration_date"));
         String    fitnessGoal      = rs.getString("fitness_goal");   // null is fine
+        boolean   active           = rs.getInt("active") == 1;
 
         Member member = new Member(personId, memberId, name, email, phone);
         // Override the auto-set registration date with the stored one
         setRegistrationDate(member, registrationDate);
         member.setFitnessGoal(fitnessGoal);
+        // Constructor always sets active=true — restore the real stored
+        // value using the same real business method the API uses, rather
+        // than adding a redundant persistence-only setter for one boolean.
+        if (!active) member.deactivate();
+        return member;
+    }
 
-        // Eagerly load membership
-        Membership membership = loadMembership(memberId);
+    /**
+     * Reconstruct a Member from a ResultSet row, including membership and
+     * payment history via additional queries. Used by findById()/
+     * findByEmail() — a single member, so the extra 2 queries this makes
+     * are never a real cost. findAll()/findByIds() deliberately do NOT use
+     * this — see their own comments for why.
+     */
+    private Member buildMember(ResultSet rs, Connection c) throws SQLException {
+        Member member = buildMemberBaseFields(rs);
+        String memberId = member.getMemberId();
+
+        Membership membership = loadMembership(memberId, c);
         if (membership != null) member.setMembership(membership);
 
-        // Eagerly load payment history
-        loadPaymentsForMember(memberId, member).forEach(member::addPayment);
+        loadPaymentsForMember(memberId, member, c).forEach(member::addPayment);
 
         return member;
     }
 
     /** Load the membership row for a given member (returns null if none). */
-    private Membership loadMembership(String memberId) throws SQLException {
+    private Membership loadMembership(String memberId, Connection c) throws SQLException {
         String sql = "SELECT * FROM memberships WHERE member_id = ?";
-        try (PreparedStatement ps = conn().prepareStatement(sql)) {
+        try (PreparedStatement ps = c.prepareStatement(sql)) {
             ps.setString(1, memberId);
             try (ResultSet rs = ps.executeQuery()) {
                 if (!rs.next()) return null;
-
-                String    membershipId = rs.getString("membership_id");
-                String    type         = rs.getString("membership_type");
-                LocalDate startDate    = LocalDate.parse(rs.getString("start_date"));
-                LocalDate endDate      = LocalDate.parse(rs.getString("end_date"));
-                double    monthlyFee   = rs.getDouble("monthly_fee");
-                boolean   frozen       = rs.getInt("frozen") == 1;
-                String    extraData    = rs.getString("extra_data");
-
-                return reconstructMembership(membershipId, type, startDate,
-                                             endDate, monthlyFee, frozen, extraData);
+                return buildMembershipFromRow(rs);
             }
         }
+    }
+
+    /**
+     * Parses one already-positioned memberships-table row into a Membership.
+     * Extracted from loadMembership() so loadMembershipsBatch() can reuse
+     * the exact same row-parsing logic for many rows in one query, instead
+     * of duplicating this reconstruction switch a second time.
+     */
+    private Membership buildMembershipFromRow(ResultSet rs) throws SQLException {
+        String    membershipId = rs.getString("membership_id");
+        String    type         = rs.getString("membership_type");
+        LocalDate startDate    = LocalDate.parse(rs.getString("start_date"));
+        LocalDate endDate      = LocalDate.parse(rs.getString("end_date"));
+        double    monthlyFee   = rs.getDouble("monthly_fee");
+        boolean   frozen       = rs.getInt("frozen") == 1;
+        String    extraData    = rs.getString("extra_data");
+        String    dueDateStr   = rs.getString("next_payment_due_date");
+        LocalDate nextDueDate  = (dueDateStr != null) ? LocalDate.parse(dueDateStr) : null;
+
+        Membership m = reconstructMembership(membershipId, type, startDate,
+                                     endDate, monthlyFee, frozen, extraData);
+        m.setNextPaymentDueDate(nextDueDate);
+        return m;
     }
 
     /**
@@ -342,7 +422,10 @@ public class SqliteMemberRepository implements MemberRepository {
                 throw new RuntimeException("Unknown membership type in DB: " + type);
         }
 
-        // Override dates with exact stored values
+        // Override dates with exact stored values — startDate restoration
+        // was the missing half of this (endDate alone was ever actually
+        // being restored), the real bug just fixed.
+        m.setStartDate(startDate);
         m.setEndDate(endDate);
 
         // Restore frozen state for types other than Standard
@@ -357,13 +440,13 @@ public class SqliteMemberRepository implements MemberRepository {
      * constructor requires a Member reference. Called from buildMember()
      * after the Member is fully built.
      */
-    private List<Payment> loadPaymentsForMember(String memberId, Member member)
+    private List<Payment> loadPaymentsForMember(String memberId, Member member, Connection c)
             throws SQLException {
         String sql =
             "SELECT * FROM payments WHERE member_id = ? ORDER BY payment_date ASC";
         List<Payment> payments = new ArrayList<>();
 
-        try (PreparedStatement ps = conn().prepareStatement(sql)) {
+        try (PreparedStatement ps = c.prepareStatement(sql)) {
             ps.setString(1, memberId);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
@@ -380,6 +463,69 @@ public class SqliteMemberRepository implements MemberRepository {
             }
         }
         return payments;
+    }
+
+    /**
+     * The actual N+1 fix. Loads memberships for many members in ONE query
+     * instead of one query per member — the real cause of findAll() and
+     * findByIds() being slow (roughly 2 extra sequential queries per member
+     * before this, so ~40 round-trips just to list 20 members).
+     *
+     * Returns memberId → Membership for every member that has one; a
+     * member with no row simply has no entry (checked with .get(), which
+     * returns null exactly like the single-member path already did).
+     */
+    private Map<String, Membership> loadMembershipsBatch(List<String> memberIds, Connection c)
+            throws SQLException {
+        Map<String, Membership> result = new HashMap<>();
+        if (memberIds.isEmpty()) return result;
+
+        String placeholders = String.join(",", Collections.nCopies(memberIds.size(), "?"));
+        String sql = "SELECT * FROM memberships WHERE member_id IN (" + placeholders + ")";
+        try (PreparedStatement ps = c.prepareStatement(sql)) {
+            for (int i = 0; i < memberIds.size(); i++) ps.setString(i + 1, memberIds.get(i));
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    result.put(rs.getString("member_id"), buildMembershipFromRow(rs));
+                }
+            }
+        }
+        return result;
+    }
+
+    /**
+     * The other half of the N+1 fix — loads payment history for many
+     * members in ONE query. Attaches each Payment directly to its real
+     * Member object (via the already-built membersById map) as rows come
+     * back, rather than returning raw data to be matched up separately,
+     * since Payment's constructor requires a live Member reference anyway.
+     */
+    private void loadPaymentsBatch(List<String> memberIds, Map<String, Member> membersById, Connection c)
+            throws SQLException {
+        if (memberIds.isEmpty()) return;
+
+        String placeholders = String.join(",", Collections.nCopies(memberIds.size(), "?"));
+        String sql = "SELECT * FROM payments WHERE member_id IN (" + placeholders
+                   + ") ORDER BY payment_date ASC";
+        try (PreparedStatement ps = c.prepareStatement(sql)) {
+            for (int i = 0; i < memberIds.size(); i++) ps.setString(i + 1, memberIds.get(i));
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Member member = membersById.get(rs.getString("member_id"));
+                    if (member == null) continue;   // defensive — should never happen
+
+                    String paymentId   = rs.getString("payment_id");
+                    double amount      = rs.getDouble("amount");
+                    String description = rs.getString("description");
+                    String status      = rs.getString("status");
+
+                    Payment p = new Payment(paymentId, amount, description, member);
+                    if (Payment.STATUS_COMPLETED.equals(status)) p.markCompleted();
+                    else if (Payment.STATUS_FAILED.equals(status)) p.markFailed();
+                    member.addPayment(p);
+                }
+            }
+        }
     }
 
     // ══════════════════════════════════════════════════════
@@ -444,11 +590,45 @@ public class SqliteMemberRepository implements MemberRepository {
     /**
      * Load members by ID list.  Used by SqliteBootcampRepository to
      * reconstruct participant lists without a full findAll().
+     *
+     * Previously looped findById() once per ID — the same N+1 pattern as
+     * the old findAll(), just triggered per class instead of once for the
+     * whole page. Now one base-row query plus the same 2 batch queries,
+     * regardless of how many IDs are requested. Result order is rebuilt
+     * to match the input list, since a single WHERE IN (...) query does
+     * not guarantee rows come back in that order.
      */
     List<Member> findByIds(List<String> memberIds) {
+        if (memberIds.isEmpty()) return new ArrayList<>();
+
+        String placeholders = String.join(",", Collections.nCopies(memberIds.size(), "?"));
+        String sql = "SELECT * FROM members WHERE member_id IN (" + placeholders + ")";
+        Map<String, Member> membersById = new HashMap<>();
+
+        try (Connection c = conn(); PreparedStatement ps = c.prepareStatement(sql)) {
+            for (int i = 0; i < memberIds.size(); i++) ps.setString(i + 1, memberIds.get(i));
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Member member = buildMemberBaseFields(rs);
+                    membersById.put(member.getMemberId(), member);
+                }
+            }
+
+            List<String> foundIds = new ArrayList<>(membersById.keySet());
+            Map<String, Membership> memberships = loadMembershipsBatch(foundIds, c);
+            for (Member member : membersById.values()) {
+                Membership membership = memberships.get(member.getMemberId());
+                if (membership != null) member.setMembership(membership);
+            }
+            loadPaymentsBatch(foundIds, membersById, c);
+        } catch (SQLException e) {
+            throw new RuntimeException("findByIds failed: " + e.getMessage(), e);
+        }
+
         List<Member> result = new ArrayList<>();
         for (String id : memberIds) {
-            findById(id).ifPresent(result::add);
+            Member member = membersById.get(id);
+            if (member != null) result.add(member);
         }
         return result;
     }

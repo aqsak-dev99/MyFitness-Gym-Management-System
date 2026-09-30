@@ -1,0 +1,86 @@
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--dash-space-4);
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: var(--dash-space-2);
+}
+
+.badgeIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  background: var(--dash-accent-gold-dim);
+  flex-shrink: 0;
+}
+
+.eyebrow {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--dash-text-muted);
+  font-weight: 700;
+}
+
+.editBtn {
+  background: none;
+  border: none;
+  color: var(--dash-accent-gold);
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.goalText {
+  color: var(--dash-text);
+  font-size: 1.05rem;
+  line-height: 1.55;
+  margin: 0;
+  font-weight: 500;
+}
+
+.empty {
+  color: var(--dash-text-muted);
+  font-size: 0.9rem;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.editArea { display: flex; flex-direction: column; gap: var(--dash-space-2); }
+
+.textarea {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--dash-glass-border);
+  border-radius: var(--dash-radius-md);
+  padding: var(--dash-space-3);
+  color: var(--dash-text);
+  font-family: inherit;
+  font-size: 0.9rem;
+  resize: vertical;
+}
+.textarea:focus { outline: none; border-color: var(--dash-accent-gold); }
+
+.error { color: var(--dash-accent-red); font-size: 0.8rem; }
+
+.actions { display: flex; justify-content: flex-end; gap: var(--dash-space-2); }
+
+.cancelBtn, .saveBtn {
+  padding: 0.45rem 1rem;
+  border-radius: 9px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+}
+.cancelBtn { background: transparent; color: var(--dash-text-muted); }
+.saveBtn { background: var(--dash-accent-gold); color: #201400; }
+.saveBtn:disabled { opacity: 0.6; cursor: not-allowed; }

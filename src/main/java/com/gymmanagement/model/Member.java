@@ -12,6 +12,7 @@ public class Member extends Person {
     private Membership    membership;
     private List<Payment> paymentHistory;
     private String        fitnessGoal;   // nullable — not every member has set one
+    private boolean       active;        // soft-deactivation — see deactivate()/reactivate()
 
     public Member(String personId, String memberId, String name,
                   String email, String phone) {
@@ -21,6 +22,7 @@ public class Member extends Person {
         this.memberId         = memberId;
         this.registrationDate = LocalDate.now();
         this.paymentHistory   = new ArrayList<>();
+        this.active           = true;
     }
 
     // ── getters ──────────────────────────────────────────
@@ -29,6 +31,19 @@ public class Member extends Person {
     public Membership    getMembership()       { return membership;       }
     public List<Payment> getPaymentHistory()   { return new ArrayList<>(paymentHistory); }
     public String        getFitnessGoal()      { return fitnessGoal;      }
+    public boolean       isActive()            { return active;           }
+
+    // ── activation status ─────────────────────────────────
+    /**
+     * Soft-deactivation, matching the same pattern as
+     * Membership.freeze()/unfreeze() — the member row is never deleted,
+     * so historical membership and enrolment data referencing this
+     * memberId stays intact. Both methods are idempotent (calling
+     * deactivate() on an already-inactive member is a harmless no-op),
+     * matching freeze()/unfreeze()'s own established behavior.
+     */
+    public void deactivate() { this.active = false; }
+    public void reactivate() { this.active = true;  }
 
     // ── fitness goal ───────────────────────────────────────
     /**
@@ -105,6 +120,7 @@ public class Member extends Person {
         sb.append("Email      : ").append(getEmail()).append("\n");
         sb.append("Phone      : ").append(getPhone()).append("\n");
         sb.append("Registered : ").append(registrationDate).append("\n");
+        sb.append("Status     : ").append(active ? "Active" : "Inactive").append("\n");
         if (membership != null) {
             sb.append("Membership : ").append(membership.getMembershipId())
               .append(" | Active: ").append(membership.isActive())

@@ -1,0 +1,35 @@
+.card { display: flex; flex-direction: column; }
+
+.header { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--dash-space-4); }
+.eyebrow { font-size: 0.85rem; font-weight: 700; color: var(--color-text-primary); }
+.viewAll { display: inline-flex; align-items: center; gap: 0.3rem; color: var(--color-primary); font-size: 0.8rem; font-weight: 700; text-decoration: none; }
+.viewAll:hover { text-decoration: underline; }
+
+.list { display: flex; flex-direction: column; gap: var(--dash-space-3); margin-bottom: var(--dash-space-4); }
+
+.row { padding: var(--dash-space-3); background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--dash-radius-md); }
+.rowTop { display: flex; align-items: center; justify-content: space-between; gap: var(--dash-space-3); margin-bottom: var(--dash-space-2); }
+.className { font-size: 0.85rem; font-weight: 600; color: var(--color-text-primary); }
+.classId { font-weight: 800; color: var(--color-primary); }
+
+.statusBadge { font-size: 0.65rem; font-weight: 800; letter-spacing: 0.04em; padding: 0.25rem 0.6rem; border-radius: 999px; white-space: nowrap; }
+.statusBadge.full { background: var(--color-danger-soft); color: var(--color-danger); }
+.statusBadge.near { background: var(--color-goal-accent-soft); color: var(--color-goal-accent); }
+.statusBadge.available { background: rgba(52, 199, 89, 0.14); color: #34c759; }
+
+.rowBottom { display: flex; align-items: center; gap: var(--dash-space-3); }
+.barTrack { flex: 1; height: 7px; border-radius: 999px; background: var(--color-border); overflow: hidden; }
+.barFill { height: 100%; border-radius: 999px; transition: width 0.3s ease; }
+.barFill.full { background: var(--color-danger); }
+.barFill.near { background: var(--color-goal-accent); }
+.barFill.available { background: #34c759; }
+
+.counts { font-size: 0.78rem; color: var(--color-text-secondary); font-weight: 600; white-space: nowrap; }
+.pct { font-size: 0.78rem; color: var(--color-text-primary); font-weight: 800; width: 2.6rem; text-align: right; }
+
+.legend { display: flex; gap: var(--dash-space-4); flex-wrap: wrap; padding-top: var(--dash-space-3); border-top: 1px solid var(--color-border); }
+.legend span { display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.75rem; color: var(--color-text-secondary); }
+.dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+.dot.full { background: var(--color-danger); }
+.dot.near { background: var(--color-goal-accent); }
+.dot.available { background: #34c759; }

@@ -40,7 +40,7 @@ public class BootcampSeeder implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        if (bootcampRepo.findAll().isEmpty()) {
+        if (!bootcampRepo.hasAnyClasses()) {
             bootcampRepo.save(new BootcampClass("BC001", BootcampType.FAT_BURN,
                     "Mon/Wed 07:00", 10));
             bootcampRepo.save(new BootcampClass("BC002", BootcampType.FITNESS_AND_ENDURANCE,

@@ -1,0 +1,23 @@
+.card { display: flex; flex-direction: column; height: 100%; }
+
+.header { display: flex; align-items: center; gap: var(--dash-space-2); margin-bottom: var(--dash-space-4); }
+.badgeIcon {
+  width: 30px; height: 30px; border-radius: 9px;
+  background: var(--color-bootcamp-accent-soft); display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.eyebrow { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.07em; color: var(--color-text-secondary); font-weight: 700; }
+
+.countRow { flex: 1; display: flex; flex-direction: column; justify-content: center; margin-bottom: var(--dash-space-4); }
+.count { font-size: 2.6rem; font-weight: 800; letter-spacing: -0.02em; color: var(--color-text-primary); line-height: 1; }
+.countLabel { font-size: 0.85rem; color: var(--color-text-secondary); margin-top: var(--dash-space-1); }
+
+.link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--color-bootcamp-accent);
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+.link:hover { text-decoration: underline; }

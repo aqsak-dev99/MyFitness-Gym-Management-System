@@ -1,0 +1,94 @@
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--dash-space-2);
+  margin-bottom: var(--dash-space-4);
+}
+
+.badgeIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  background: var(--dash-accent-blue-dim);
+  flex-shrink: 0;
+}
+
+.eyebrow {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--dash-text-muted);
+  font-weight: 700;
+}
+
+.empty { color: var(--dash-text-muted); font-size: 0.9rem; margin: 0; }
+
+.list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--dash-space-3); }
+
+.item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--dash-space-4);
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: var(--dash-radius-md);
+}
+
+.className { color: var(--dash-text); font-weight: 700; font-size: 0.92rem; }
+.schedule { color: var(--dash-text-muted); font-size: 0.8rem; margin-top: 2px; }
+
+.capacity {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--dash-accent-blue);
+  background: var(--dash-accent-blue-dim);
+  padding: 0.25rem 0.7rem;
+  border-radius: 999px;
+}
+
+.card { overflow: visible; }
+
+.emptyRow {
+  display: flex;
+  align-items: center;
+  gap: var(--dash-space-4);
+  flex-wrap: wrap;
+}
+
+.emptyText { flex: 1; min-width: 200px; }
+.emptySub { color: var(--dash-text-muted); font-size: 0.85rem; margin: 0.3rem 0 0; }
+
+.illustration {
+  width: 160px;
+  height: auto;
+  flex-shrink: 0;
+  filter: drop-shadow(0 0 10px rgba(74, 184, 247, 0.35));
+}
+
+.browseLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.6rem 1.1rem;
+  border: 1px solid rgba(74, 184, 247, 0.4);
+  border-radius: 10px;
+  background: var(--dash-accent-blue-dim);
+  color: var(--dash-accent-blue);
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background-color 0.15s ease;
+}
+.browseLink:hover { background: rgba(74, 184, 247, 0.24); text-decoration: none; }
+.arrow { transition: transform 0.15s ease; }
+.browseLink:hover .arrow { transform: translateX(3px); }
+
+@media (max-width: 640px) {
+  .emptyRow { flex-direction: column; align-items: flex-start; }
+  .illustration { display: none; }
+}

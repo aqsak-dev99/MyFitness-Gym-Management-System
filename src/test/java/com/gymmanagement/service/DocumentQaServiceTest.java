@@ -50,7 +50,7 @@ class DocumentQaServiceTest {
         documentQaService = new DocumentQaService(chunkRepo, embeddingClient, geminiClient, documentService);
 
         documentRepo.save(new Document(
-            DOC_ID, "test.txt", "Membership fees are fifty pounds a month.", LocalDate.now()));
+            DOC_ID, "test.txt", "Membership fees are fifty pounds a month.", LocalDate.now(), "MEMBER"));
     }
 
     private DocumentChunk chunk(int index, String content) {

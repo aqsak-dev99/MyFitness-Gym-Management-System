@@ -2,144 +2,41 @@ package com.gymmanagement.db;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.sql.Statement;
 
 /**
- * DatabaseManager — application-wide PostgreSQL connection manager.
+ * DatabaseManager — as of the HikariCP migration, this is now a pure,
+ * stateless parsing utility. It no longer holds a Connection, a
+ * Singleton instance, or any connection lifecycle logic at all —
+ * that entire responsibility moved to DataSourceConfig, which builds
+ * a real HikariCP pool instead of one hand-rolled shared Connection.
  *
- * Migrated from SQLite. What changed and what didn't:
+ * What stayed, and why: the DATABASE_URL parsing logic below never
+ * touched any instance state — it was always pure string parsing —
+ * so DataSourceConfig reuses it directly rather than duplicating the
+ * same URI-format handling in a second place. This preserves the
+ * exact existing DATABASE_URL format (postgres://user:pass@host:port/db)
+ * with zero deployment configuration changes required.
  *
- *  Still a Singleton, still lazy-init, still calls createSchema() on
- *  every startup using "CREATE TABLE IF NOT EXISTS" (idempotent, safe
- *  to re-run). None of that needed to change moving databases — those
- *  decisions were about application structure, not which SQL engine
- *  sits underneath.
- *
- *  What DID change: SQLite was a local file needing zero configuration.
- *  Postgres is a real network service needing a host, port, database
- *  name, username, and password. Rather than five separate environment
- *  variables (five more places to make a typo), this reads ONE —
- *  DATABASE_URL — in the format every major Postgres host already hands
- *  you front-and-centre in their dashboard:
- *
- *      postgres://username:password@host:port/database
- *
- *  and parses it into what java.sql.DriverManager actually needs
- *  internally. Copy the connection string your provider gives you,
- *  paste it as one environment variable, done — no manual splitting
- *  required.
- *
- *  FK enforcement: no more PRAGMA call. Postgres enforces every
- *  FOREIGN KEY constraint unconditionally — see DatabaseSchema for
- *  why that's a meaningful improvement, not just a syntax difference.
- *
- *  What I'd change at scale: this is still a single hand-rolled
- *  Connection shared across the whole app — correct for SQLite's
- *  single-writer model, but Postgres supports real concurrent
- *  connections. A production version of this would use a connection
- *  pool (HikariCP, which Spring Boot auto-configures for free once
- *  you use spring.datasource.* properties instead of a hand-rolled
- *  singleton) rather than one Connection object reused everywhere.
+ * What used to live here and is now gone: the Singleton getInstance(),
+ * the shared Connection field, getConnection() (including its
+ * isValid()-based stale-connection reconnect logic — genuinely
+ * superseded, not just moved, by HikariCP's keepaliveTime, which
+ * proactively validates idle pooled connections on its own schedule
+ * rather than only checking reactively when something asks for one),
+ * close(), and createSchema() (now DataSourceConfig.runSchemaCreation(),
+ * using the exact same DatabaseSchema statements, unchanged).
  */
 public final class DatabaseManager {
 
-    private static DatabaseManager instance;
-    private        Connection       connection;
-
-    // ── private constructor (Singleton) ───────────────────
     private DatabaseManager() {
-        try {
-            Class.forName("org.postgresql.Driver");
-
-            String[] parts = resolveConnectionParts();
-            connection = DriverManager.getConnection(parts[0], parts[1], parts[2]);
-            createSchema();
-
-            System.out.println("[DB] Connected to PostgreSQL database.");
-
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException(
-                "[DB] PostgreSQL JDBC driver not found on the classpath.", e);
-        } catch (SQLException e) {
-            throw new RuntimeException(
-                "[DB] Failed to open database connection: " + e.getMessage(), e);
-        } catch (URISyntaxException e) {
-            throw new RuntimeException(
-                "[DB] DATABASE_URL is not a valid connection string: " + e.getMessage(), e);
-        }
-    }
-
-    // ── Singleton accessor ────────────────────────────────
-    public static synchronized DatabaseManager getInstance() {
-        if (instance == null) {
-            instance = new DatabaseManager();
-        }
-        return instance;
-    }
-
-    // ── Connection accessor ───────────────────────────────
-    /**
-     * Returns the shared Connection.
-     * Repositories call this to obtain a connection for every query.
-     * They do NOT close this connection — it stays open for the
-     * lifetime of the application.
-     */
-    public Connection getConnection() {
-        try {
-            if (connection == null || connection.isClosed()) {
-                String[] parts = resolveConnectionParts();
-                connection = DriverManager.getConnection(parts[0], parts[1], parts[2]);
-            }
-        } catch (SQLException | URISyntaxException e) {
-            throw new RuntimeException("[DB] Failed to reopen connection: " + e.getMessage(), e);
-        }
-        return connection;
-    }
-
-    // ── Graceful shutdown ─────────────────────────────────
-    /**
-     * Close the connection cleanly.
-     * Called from Main's shutdown hook.
-     */
-    public void close() {
-        try {
-            if (connection != null && !connection.isClosed()) {
-                connection.close();
-                System.out.println("[DB] Connection closed.");
-            }
-        } catch (SQLException e) {
-            System.err.println("[DB] Error closing connection: " + e.getMessage());
-        }
-    }
-
-    // ── Private helpers ───────────────────────────────────
-
-    private void createSchema() throws SQLException {
-        try (Statement st = connection.createStatement()) {
-            st.execute(DatabaseSchema.CREATE_MEMBERS);
-            st.execute(DatabaseSchema.CREATE_MEMBERSHIPS);
-            st.execute(DatabaseSchema.CREATE_PAYMENTS);
-            st.execute(DatabaseSchema.CREATE_BOOTCAMP_CLASSES);
-            st.execute(DatabaseSchema.CREATE_BOOTCAMP_ENROLMENTS);
-            st.execute(DatabaseSchema.CREATE_USERS);
-            st.execute(DatabaseSchema.CREATE_DOCUMENTS);
-            st.execute(DatabaseSchema.CREATE_VECTOR_EXTENSION);   // must run first — CREATE_DOCUMENT_CHUNKS references the vector type
-            st.execute(DatabaseSchema.CREATE_DOCUMENT_CHUNKS);
-            st.execute(DatabaseSchema.ADD_EMBEDDING_COLUMN);
-            st.execute(DatabaseSchema.ADD_FITNESS_GOAL_COLUMN);
-        }
-        System.out.println("[DB] Schema verified.");
+        // Not instantiated anymore — every method here is static.
     }
 
     /**
      * Reads the DATABASE_URL environment variable and converts it from
      * the "postgres://user:pass@host:port/db" shape hosting providers
-     * hand you, into what DriverManager.getConnection() actually wants:
-     * a jdbc:postgresql:// URL, plus username and password as separate
-     * arguments.
+     * hand you, into what a JDBC DataSource actually needs: a
+     * jdbc:postgresql:// URL, plus username and password separately.
      *
      * Returns a 3-element array: [jdbcUrl, username, password].
      *
@@ -149,7 +46,7 @@ public final class DatabaseManager {
      * silently dropping that parameter would cause a much more confusing
      * failure than this method just carrying it along.
      */
-    private String[] resolveConnectionParts() throws URISyntaxException {
+    public static String[] resolveConnectionParts() throws URISyntaxException {
         String raw = System.getenv("DATABASE_URL");
         if (raw == null || raw.isBlank()) {
             throw new RuntimeException(

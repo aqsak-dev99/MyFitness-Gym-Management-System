@@ -1,0 +1,46 @@
+.title { color: var(--dash-text); font-size: 2rem; font-weight: 800; letter-spacing: -0.02em; margin: 0 0 0.4rem; }
+.subtitle { color: var(--dash-text-muted); margin: 0 0 var(--dash-space-6); }
+.empty { color: var(--dash-text-muted); margin: 0; }
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--dash-space-4);
+}
+
+.cardHeader { display: flex; align-items: center; gap: var(--dash-space-3); margin-bottom: var(--dash-space-4); }
+.badgeIcon {
+  width: 40px; height: 40px; border-radius: 12px;
+  background: var(--dash-accent-blue-dim);
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.className { color: var(--dash-text); font-weight: 700; font-size: 1rem; }
+.schedule { color: var(--dash-text-muted); font-size: 0.85rem; margin-top: 2px; }
+
+.metaRow { display: flex; flex-wrap: wrap; gap: var(--dash-space-2); margin-bottom: var(--dash-space-3); }
+.capacityBadge {
+  font-size: 0.78rem; font-weight: 700; color: var(--dash-accent-blue);
+  background: var(--dash-accent-blue-dim); padding: 0.25rem 0.7rem; border-radius: 999px;
+}
+.capacityBadge.full { color: var(--dash-accent-red); background: var(--dash-accent-red-dim); }
+.feeBadge {
+  font-size: 0.78rem; font-weight: 700; color: var(--dash-accent-gold);
+  background: var(--dash-accent-gold-dim); padding: 0.25rem 0.7rem; border-radius: 999px;
+}
+
+.enrolArea { margin-top: var(--dash-space-3); padding-top: var(--dash-space-3); border-top: 1px solid rgba(255,255,255,0.06); }
+.enrolTrigger {
+  width: 100%; padding: 0.55rem; border-radius: 9px; border: 1px solid var(--dash-glass-border);
+  background: rgba(255,255,255,0.04); color: var(--dash-text); font-weight: 600; font-size: 0.85rem; cursor: pointer;
+}
+.enrolTrigger:disabled { opacity: 0.5; cursor: not-allowed; }
+.enrolForm { display: flex; gap: var(--dash-space-2); }
+.enrolInput {
+  flex: 1; padding: 0.5rem 0.7rem; border-radius: 8px; border: 1px solid var(--dash-glass-border);
+  background: rgba(255,255,255,0.04); color: var(--dash-text); font-size: 0.85rem;
+}
+.enrolInput:focus { outline: none; border-color: var(--dash-accent-green); }
+.enrolSubmit { padding: 0.5rem 0.9rem; border-radius: 8px; border: none; background: var(--dash-accent-green); color: #05170f; font-weight: 700; cursor: pointer; }
+.enrolCancel { padding: 0.5rem 0.7rem; border-radius: 8px; border: none; background: transparent; color: var(--dash-text-muted); cursor: pointer; }
+.enrolError { color: var(--dash-accent-red); font-size: 0.78rem; margin-top: var(--dash-space-2); }
+.enrolSuccess { color: var(--dash-accent-green); font-size: 0.78rem; margin-top: var(--dash-space-2); }
