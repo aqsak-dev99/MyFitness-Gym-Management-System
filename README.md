@@ -1,121 +1,142 @@
-# MyFitness
+# MyFitness — Gym Management System
 
-A gym management backend, built from scratch to survive the kind of question that starts with "walk me through why you did it this way." Not a tutorial clone, not a class assignment — a real system that's been broken, debugged, and fixed enough times to actually mean something.
+A full-stack gym management platform with role-based access, real billing logic, and an AI assistant backed by a genuine retrieval-augmented generation (RAG) pipeline — built end-to-end as a portfolio project to demonstrate production-oriented backend and frontend engineering.
 
-It manages members, three different membership pricing models, bootcamp classes with capacity and discount logic, payments, and login — all backed by a real database, all covered by a real test suite, all built through a real dependency-management tool instead of hand-downloaded jars.
+**Live app:** [myfitness-frontend.onrender.com](https://myfitness-frontend.onrender.com)
+**API:** [myfitness-gym-management-system.onrender.com](https://myfitness-gym-management-system.onrender.com)
 
-## What it does
+Demo credentials:
+| Role | Username | Password |
+|---|---|---|
+| Admin | `demo_admin` | `DemoPass123` |
+| Member | `dm01_demo` | `DemoPass123` |
 
-**Members** — register, look up, update, deactivate. Backed by SQLite, so nothing disappears on restart.
-
-**Three membership types**, each with its own pricing logic — Standard, Student Saver, Pay-As-You-Go — modeled through an abstract `Membership` class rather than a `type` field and a growing `if/else` chain.
-
-**Bootcamp classes** — enrolment respects capacity (`ClassFullException` when a class is full), and a 7% discount kicks in automatically once a member is enrolled in more than one class. This discount logic broke silently once already — more on that below — so it's now guarded by a dedicated regression test.
-
-**Payments** — processed through the service layer, with a hard business rule (no payment over a set ceiling) enforced *before* anything touches the database. Status moves through explicit methods (`markCompleted()`, `markFailed()`), never a field overwritten from outside.
-
-**Authentication** — BCrypt-hashed passwords, `ADMIN` and `MEMBER` roles, login gating what each role can actually do. A wrong password and a username that doesn't exist return the *identical* error — deliberately, so a login attempt can't be used to figure out which usernames are real.
-
-**31 passing JUnit 5 tests**, one for every service in the system — not padding, not getter/setter tests. Two of them exist specifically because a bug made it past manual testing once and won't get the chance to do it silently again.
+> Hosted on Render's free tier — the first request after a period of inactivity may take 30–60 seconds to wake the server. This is a hosting-tier characteristic, not an application issue.
 
 ---
 
-## Architecture
+## Why this project
 
+Most student portfolio CRUD apps stop at "create, read, update, delete." This one was built to go further in three specific directions: **real authorization boundaries** (not just hidden UI buttons), **real business logic** (derived billing state, not stored flags that can drift out of sync), and a **genuine RAG pipeline** for the AI assistant rather than a thin wrapper around a chat API.
+
+---
+
+## Tech Stack
+
+**Backend**
+- Java 21, Spring Boot 3.2.5
+- PostgreSQL (Neon, serverless) via HikariCP connection pooling
+- Spring Security + JWT (jjwt) for stateless authentication, BCrypt for password hashing
+- Google Gemini API for chat, tool-calling, and embeddings
+- pgvector for similarity search
+- JUnit 5 — 120 tests across 21 test classes
+
+**Frontend**
+- React 19, Vite 8
+- React Router 7
+- Plain CSS Modules — no UI framework, hand-built design system with full light/dark theming
+
+**Deployment**
+- Backend: Render Web Service
+- Frontend: Render Static Site
+- Database: Neon (serverless Postgres)
+
+---
+
+## Architecture Highlights
+
+### Layered authorization, mirrored on both ends
+Every protected action is checked **twice**, independently: once in the React Router tree (`RoleRoute`/`ProtectedRoute` guards redirect unauthorized navigation before a page even renders) and once on the backend (role and ownership checks run server-side regardless of what the frontend does or doesn't show). A Member can never fetch another member's data by editing a URL or request payload — ownership is enforced at the service layer, not assumed from the UI.
+
+### Billing state is derived, not stored
+A membership's payment status (`PAID` / `DUE_SOON` / `OVERDUE`) is computed on read from the actual due date and current date — never written to the database as a flag. This was a deliberate choice: a stored status flag can silently drift out of sync with reality; a derived one can't.
+
+### The AI Assistant is a real RAG pipeline, not a chat wrapper
+Uploaded documents are chunked, embedded, and stored in pgvector. A query is embedded the same way, matched by similarity search, and the assistant answers only from retrieved chunks — with inline citations back to source material. Below a confidence threshold, it explicitly declines rather than guessing. Admin and Member document knowledge bases are kept separate, so a Member's assistant can never surface Admin-only content. A separate tool-calling mode lets the assistant query live bootcamp class data directly rather than relying on stale retrieved text.
+
+### Connection pooling and query performance
+The backend runs on HikariCP rather than a single hand-rolled connection — validated under a rapid-restart stress test that reproduced the exact failure pattern a naive connection setup hits under load. A related fix eliminated an N+1 query pattern in member/class lookups (originally 2N+1 queries per page load), replacing it with constant-time batch loading.
+
+### Deployment: two independently hosted services
+The frontend is a Vite static build; the backend is a separate Spring Boot service. CORS and API base URLs are both environment-driven, not hardcoded, so the same codebase runs identically in local development and production. Client-side routing required an explicit SPA fallback rewrite rule on the host — a detail that's easy to miss and worth calling out, since it's a common gap between "builds successfully" and "actually works when a user refreshes the page."
+
+---
+
+## Core Features
+
+**Admin**
+- Full CRUD for Members, Staff (Instructors / Full-time / Part-time), and Bootcamp Classes
+- Revenue dashboard and Reports, computed live from real payment and membership data
+- CSV export for Members and Revenue data
+- Confirmation dialogs on every destructive action; toast feedback on every state-changing one
+- Admin-scoped AI Assistant with its own document knowledge base
+
+**Member**
+- Personal dashboard, membership status, and billing history
+- Fitness goal tracking
+- Class browsing (enrollment is staff-managed, by design)
+- Member-scoped AI Assistant
+
+**Shared**
+- JWT-based auth with BCrypt-hashed passwords
+- Full light/dark theming across every page
+- Three membership types (Standard, Student Saver, Pay As You Go), each with distinct billing rules and multi-class enrollment discounting
+
+---
+
+## API Overview
+
+53 REST endpoints across Members, Staff, Bootcamp Classes, Memberships, Payments, Documents, AI, and Auth. Interactive API documentation is available via Swagger/OpenAPI at `/swagger-ui.html` on the backend once running.
+
+---
+
+## Running Locally
+
+**Backend**
+```bash
+# Requires: Java 21, Maven, a PostgreSQL database (Neon or local)
+git clone https://github.com/aqsak-dev99/MyFitness-Gym-Management-System.git
+cd MyFitness-Gym-Management-System
+
+# Set required environment variables:
+export DATABASE_URL=<your-postgres-connection-string>
+export GEMINI_API_KEY=<your-gemini-api-key>
+export JWT_SECRET=<any-long-random-string>
+
+mvn clean package
+java -jar target/myfitness.jar
 ```
-com.gymmanagement
-├── model/                  Person, Member, Staff hierarchy, GymClass, User
-│   └── membership/          Standard / StudentSaver / PayAsYouGo, IBootcampFee
-├── repository/              MemberRepository, BootcampRepository, UserRepository
-│                            (interfaces — Sqlite implementations underneath)
-├── service/                 MemberService, MembershipService,
-│                            TrainerService, AuthService — the business rules live here
-├── exception/                8 custom types: MemberNotFoundException,
-│                            DuplicateMemberException, ClassFullException,
-│                            PaymentFailedException, InvalidInputException,
-│                            InvalidCredentialsException, DuplicateUserException,
-│                            UnauthorizedException
-├── db/                      DatabaseManager (connection), DatabaseSchema (DDL)
-└── ui/                      GymConsoleApp — the only class allowed to touch System.out
+Backend runs on `http://localhost:8080`.
+
+**Frontend**
+```bash
+cd frontend
+npm install
+npm run dev
 ```
-
-Source lives under Maven's standard layout — `src/main/java/...` for the application, `src/test/java/...` for the 31-test suite — rather than a flat `src/` folder.
-
-This wasn't the first shape it took, in either sense. It started as one flat `Main.java` — creating objects, running demo scenarios, printing output, and standing in as the database, all in the same file. Splitting that apart was the single change that mattered most here. `Main.java` is about 10 lines now. It wires four services together and gets out of the way. Everything else has exactly one job. The build system went through its own equivalent shift later — from manually downloaded jars and hand-built classpath strings to Maven managing every dependency by declaration. Same principle, different layer: stop doing by hand what a tool exists to do correctly.
+Frontend runs on `http://localhost:5173` and talks to `localhost:8080` by default — no extra configuration needed for local development.
 
 ---
 
-## Decisions I'd actually defend
-
-Every one of these exists because something broke first, not because a guide said to do it this way.
-
-**`ON CONFLICT(member_id) DO UPDATE` instead of `INSERT OR REPLACE`.**
-`INSERT OR REPLACE` doesn't update a row — it deletes it and inserts a new one. With `ON DELETE CASCADE` on `bootcamp_enrolments.member_id`, that meant every routine member update silently wiped that member's bootcamp enrolments. Nothing errored. It just quietly lost data. Switching to a real `UPDATE` fixed it without touching the cascade rule anywhere else.
-
-**`users.member_id` uses `ON DELETE SET NULL`, not `CASCADE`.**
-Applied on purpose, right after finding the bug above, and before it had the chance to repeat itself in the newly added auth tables. Deleting a member shouldn't be able to silently delete their login too.
-
-**`Member.equals()` and `hashCode()` are based on `memberId`, not object identity.**
-Every SQLite fetch builds a brand-new `Member` object. Without this override, two fetches of "the same" member were never equal to each other, which quietly broke duplicate-enrolment checks and — less obviously — made the bootcamp discount logic never fire, since it depends on counting a member's existing enrolments correctly. Two of the 31 tests exist purely to make sure this specific fix can never silently regress.
-
-**Idempotent `registerIfAbsent()`-style helpers throughout.**
-Re-running setup against an existing `gym.db` shouldn't throw a duplicate-key exception. It should just recognize the data's already there and move on.
-
-**A hand-written `FakeMemberRepository` instead of Mockito.**
-Mockito pulls in several more transitive dependencies. Given how much of this project involved untangling dependency and classpath issues by hand, adding a heavier mocking framework for a marginal convenience felt like the wrong tradeoff. A five-minute fake implementing the same interface tests the service layer just as well, with nothing extra to break.
-
-**`Arrays.asList()` instead of `List.of()` for nullable payment lists.**
-`List.of()` throws on any `null` element. In this codebase, `null` in that list is a meaningful, legitimate value — not a bug to guard against.
-
-**Manual `javac` and jars first, then a deliberate Maven migration — not Maven from day one.**
-The project started on manual `javac` because that's what surfaced *why* a build tool matters in the first place: chasing individual jar files, discovering `sqlite-jdbc` needed `slf4j-api` as an undeclared transitive dependency, and hand-writing classpath strings for every compile and every test run. Migrating to Maven afterward meant that value was actually understood, not just assumed.
-
----
-
-## Tech stack
-
-| | |
-|---|---|
-| Language | Java 21 |
-| Persistence | SQLite via JDBC |
-| Auth | BCrypt |
-| Testing | JUnit 5, hand-rolled fakes (no mocking framework) |
-| Build | Maven |
-
----
-
-## Running it locally
+## Testing
 
 ```bash
-mvn compile
+mvn clean package
 ```
-
-Run the app:
-
-```bash
-mvn compile exec:java
-```
-
-Run the full test suite:
-
-```bash
-mvn test
-```
-
-That's it. Maven resolves `sqlite-jdbc`, `slf4j-api`, `jbcrypt`, and `junit-jupiter` on its own — no manually downloaded jars, no classpath strings to assemble by hand.
-
-`gym.db` is created automatically on first run. Re-running is safe — nothing gets seeded twice.
+120 tests covering service-layer business logic, repository behavior, and billing/membership edge cases.
 
 ---
 
-## Roadmap
+## Known Limitations
 
-1. ~~Layered architecture~~ — done
-2. ~~SQLite persistence~~ — done
-3. ~~Authentication~~ — done
-4. ~~JUnit coverage across all four services~~ — done, 31 tests passing
-5. ~~Migrate off manual `javac` onto Maven~~ — done. The test suite existed partly to catch anything this migration broke — it caught nothing, all 31 passed straight through the new build layout.
-6. Convert to a Spring Boot REST API
-7. Docker
-8. Deploy — Azure App Service (free tier) + Azure SQL, Render as backup so the live link doesn't go dark mid-application-cycle
-9. Write up the debugging process as a blog post — the cascading-delete bug alone is worth its own writeup
+Being direct about what isn't done, rather than implying otherwise:
+
+- **No frontend test suite** — no Jest/React Testing Library coverage yet. Backend logic is thoroughly tested; frontend correctness has so far relied on manual QA across both roles and both themes.
+- **Render free tier** — the backend cold-starts after inactivity; not a fix so much as an accepted trade-off for a portfolio deployment.
+- **Payment receipt PDFs** — considered and deliberately deferred. Building it properly would have required a new PDF-generation dependency and new backend surface with real ownership-enforcement logic; rather than ship something half-considered, it was left out.
+
+---
+
+## License
+
+MIT
