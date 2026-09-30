@@ -29,7 +29,7 @@ Most student portfolio CRUD apps stop at "create, read, update, delete." This on
 - Spring Security + JWT (jjwt) for stateless authentication, BCrypt for password hashing
 - Google Gemini API for chat, tool-calling, and embeddings
 - pgvector for similarity search
-- JUnit 5 — 120 tests across 21 test classes
+- JUnit 5 — 119 tests across 12 test classes
 
 **Frontend**
 - React 19, Vite 8
