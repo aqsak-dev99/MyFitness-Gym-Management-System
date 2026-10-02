@@ -1,131 +1,189 @@
 # MyFitness — Gym Management System
 
-A full-stack gym management platform with role-based access, real billing logic, and an AI assistant backed by a genuine retrieval-augmented generation (RAG) pipeline — built end-to-end as a portfolio project to demonstrate production-oriented backend and frontend engineering.
+A full-stack gym management system with role-based access, membership billing, and an AI assistant that answers from uploaded documents using retrieval-augmented generation (RAG).
 
-**Live app:** [myfitness-frontend.onrender.com](https://myfitness-frontend.onrender.com)
-**API:** [myfitness-gym-management-system.onrender.com](https://myfitness-gym-management-system.onrender.com)
+**Live app:** https://myfitness-frontend.onrender.com
+**API:** https://myfitness-gym-management-system.onrender.com
+**API docs:** [Swagger UI](https://myfitness-gym-management-system.onrender.com/swagger-ui.html)
 
-Demo credentials:
-| Role | Username | Password |
+| Role   | Username     | Password      |
+|--------|--------------|---------------|
+| Admin  | `demo_admin` | `DemoPass123` |
+| Member | `dm01_demo`  | `DemoPass123` |
+
+> Hosted on Render's free tier. The first request after a period of inactivity can take 30–60 seconds while the server wakes up.
+
+<!-- TODO: add screenshots, then uncomment
+## Screenshots
+
+| Admin dashboard | Member dashboard | AI Assistant |
 |---|---|---|
-| Admin | `demo_admin` | `DemoPass123` |
-| Member | `dm01_demo` | `DemoPass123` |
+| ![Admin dashboard](docs/img/admin-dashboard.png) | ![Member dashboard](docs/img/member-dashboard.png) | ![AI Assistant](docs/img/ai-assistant.png) |
+-->
 
-> Hosted on Render's free tier — the first request after a period of inactivity may take 30–60 seconds to wake the server. This is a hosting-tier characteristic, not an application issue.
-
----
-
-## Why this project
-
-Most student portfolio CRUD apps stop at "create, read, update, delete." This one was built to go further in three specific directions: **real authorization boundaries** (not just hidden UI buttons), **real business logic** (derived billing state, not stored flags that can drift out of sync), and a **genuine RAG pipeline** for the AI assistant rather than a thin wrapper around a chat API.
-
----
-
-## Tech Stack
-
-**Backend**
-- Java 21, Spring Boot 3.2.5
-- PostgreSQL (Neon, serverless) via HikariCP connection pooling
-- Spring Security + JWT (jjwt) for stateless authentication, BCrypt for password hashing
-- Google Gemini API for chat, tool-calling, and embeddings
-- pgvector for similarity search
-- JUnit 5 — 119 tests across 12 test classes
-
-**Frontend**
-- React 19, Vite 8
-- React Router 7
-- Plain CSS Modules — no UI framework, hand-built design system with full light/dark theming
-
-**Deployment**
-- Backend: Render Web Service
-- Frontend: Render Static Site
-- Database: Neon (serverless Postgres)
-
----
-
-## Architecture Highlights
-
-### Layered authorization, mirrored on both ends
-Every protected action is checked **twice**, independently: once in the React Router tree (`RoleRoute`/`ProtectedRoute` guards redirect unauthorized navigation before a page even renders) and once on the backend (role and ownership checks run server-side regardless of what the frontend does or doesn't show). A Member can never fetch another member's data by editing a URL or request payload — ownership is enforced at the service layer, not assumed from the UI.
-
-### Billing state is derived, not stored
-A membership's payment status (`PAID` / `DUE_SOON` / `OVERDUE`) is computed on read from the actual due date and current date — never written to the database as a flag. This was a deliberate choice: a stored status flag can silently drift out of sync with reality; a derived one can't.
-
-### The AI Assistant is a real RAG pipeline, not a chat wrapper
-Uploaded documents are chunked, embedded, and stored in pgvector. A query is embedded the same way, matched by similarity search, and the assistant answers only from retrieved chunks — with inline citations back to source material. Below a confidence threshold, it explicitly declines rather than guessing. Admin and Member document knowledge bases are kept separate, so a Member's assistant can never surface Admin-only content. A separate tool-calling mode lets the assistant query live bootcamp class data directly rather than relying on stale retrieved text.
-
-### Connection pooling and query performance
-The backend runs on HikariCP rather than a single hand-rolled connection — validated under a rapid-restart stress test that reproduced the exact failure pattern a naive connection setup hits under load. A related fix eliminated an N+1 query pattern in member/class lookups (originally 2N+1 queries per page load), replacing it with constant-time batch loading.
-
-### Deployment: two independently hosted services
-The frontend is a Vite static build; the backend is a separate Spring Boot service. CORS and API base URLs are both environment-driven, not hardcoded, so the same codebase runs identically in local development and production. Client-side routing required an explicit SPA fallback rewrite rule on the host — a detail that's easy to miss and worth calling out, since it's a common gap between "builds successfully" and "actually works when a user refreshes the page."
-
----
-
-## Core Features
+## What it does
 
 **Admin**
-- Full CRUD for Members, Staff (Instructors / Full-time / Part-time), and Bootcamp Classes
-- Revenue dashboard and Reports, computed live from real payment and membership data
-- CSV export for Members and Revenue data
-- Confirmation dialogs on every destructive action; toast feedback on every state-changing one
-- Admin-scoped AI Assistant with its own document knowledge base
+
+- Create, edit, and remove members, staff (instructors, full-time, part-time), and bootcamp classes
+- Assign memberships and enrol members in classes
+- Revenue dashboard and reports calculated from payment and membership data
+- CSV export for members and revenue
+- AI Assistant with an admin-only document knowledge base
 
 **Member**
-- Personal dashboard, membership status, and billing history
+
+- Personal dashboard with membership status and billing history
 - Fitness goal tracking
-- Class browsing (enrollment is staff-managed, by design)
-- Member-scoped AI Assistant
+- Class browsing (enrolment is handled by admins)
+- AI Assistant with a member-only knowledge base, plus class recommendations based on the member's stated goal
 
-**Shared**
-- JWT-based auth with BCrypt-hashed passwords
-- Full light/dark theming across every page
-- Three membership types (Standard, Student Saver, Pay As You Go), each with distinct billing rules and multi-class enrollment discounting
+**Both roles**
 
----
+- Three membership types (Standard, Student Saver, Pay As You Go), each with its own billing rules, and a 7% discount for multi-class enrolment
+- Light and dark themes on every page
+- Confirmation before destructive actions, and feedback after every change
 
-## API Overview
+## Tech stack
 
-53 REST endpoints across Members, Staff, Bootcamp Classes, Memberships, Payments, Documents, AI, and Auth. Interactive API documentation is available via Swagger/OpenAPI at `/swagger-ui.html` on the backend once running.
+| Layer      | Technology |
+|------------|------------|
+| Backend    | Java 21, Spring Boot 3.2.5 |
+| Database   | PostgreSQL on Neon, HikariCP connection pool, pgvector for similarity search |
+| Auth       | JWT (JJWT) with BCrypt password hashing |
+| AI         | Google Gemini API for chat, tool calling, and embeddings |
+| Frontend   | React 19, Vite 8, React Router 7, CSS Modules |
+| Testing    | JUnit 5 |
+| Deployment | Render (backend web service and static frontend), Neon (database) |
 
----
+## Architecture
 
-## Running Locally
+```mermaid
+flowchart TB
+    user["Browser"]
+
+    subgraph fe["Frontend: Render static site"]
+        react["React 19 + Vite<br/>Route guards, light/dark themes"]
+    end
+
+    subgraph be["Backend: Render web service (Spring Boot)"]
+        auth["Auth interceptor<br/>JWT, role and ownership checks"]
+        ctrl["REST controllers<br/>53 endpoints"]
+        svc["Services<br/>Members, billing, staff, classes"]
+        ai["AI services<br/>Chunking, retrieval, document answers,<br/>recommendations, tool calling"]
+        limiter["Rate limiter"]
+        repo["Repositories"]
+    end
+
+    subgraph db["Database: Neon"]
+        pg[("PostgreSQL<br/>+ pgvector")]
+    end
+
+    gemini["Google Gemini API<br/>Chat and embeddings"]
+
+    user --> react
+    react -->|"REST + JWT"| auth
+    auth --> ctrl
+    ctrl --> svc
+    ctrl --> ai
+    svc --> repo
+    ai --> repo
+    ai --> limiter
+    limiter --> gemini
+    repo -->|"HikariCP pool"| pg
+```
+
+## How it's built
+
+### Authorization is enforced on the server
+
+Role and ownership checks run on the backend for every protected endpoint, through `@RequireRole` and `@RequireOwnership` annotations handled by a shared interceptor. A member cannot read another member's data by changing a URL or request body. The React route guards (`ProtectedRoute`, `RoleRoute`) exist for user experience only; they are not the security boundary.
+
+### Payment status is calculated, not stored
+
+A membership's status (`PAID`, `DUE_SOON`, `OVERDUE`) is computed on read from the due date and today's date. Nothing is written to the database as a status flag, so the status can never disagree with the dates it depends on.
+
+### The AI assistant
+
+- **Document Q&A (RAG).** Uploaded documents are split into overlapping chunks, embedded with Gemini, and stored in pgvector. A question is embedded the same way and matched by cosine distance. The assistant answers only from the retrieved chunks and cites its sources.
+- **Refusal.** If no chunk is close enough to the question, the assistant declines and no call is made to Gemini. The cut-off was set from measured distances (about 0.38 for a relevant match and 0.55 for an irrelevant one).
+- **Separate knowledge bases.** Admin and member documents are stored apart, so a member's assistant cannot surface admin-only content.
+- **Tool calling.** For questions about classes, the model calls a function that queries the live class data instead of relying on retrieved text.
+- **Recommendations.** Class suggestions are generated from the member's free-text fitness goal and the classes currently available.
+- **Quota protection.** A rate limiter sits in front of every Gemini call, and the model name is set through an environment variable so a deprecated model can be replaced without a code change.
+
+### Database access
+
+The backend uses a HikariCP pool. An earlier version held a single shared connection, which failed when the database closed an idle connection. Member and class lookups originally ran 2N+1 queries per page; they now use batch loading with a fixed number of queries regardless of page size.
+
+### Deployment
+
+The frontend and backend are hosted as two separate services. CORS origins and the API base URL come from environment variables, so the same code runs locally and in production. The static host has a rewrite rule that sends all routes to `index.html`, so refreshing a client-side route works.
+
+## Testing
+
+```bash
+mvn test
+```
+
+119 tests across 12 test classes, covering service-layer business logic, billing and membership edge cases, authorization, and the AI pipeline.
+
+- **Fakes instead of a mocking framework.** Every repository is an interface, and tests use small hand-written in-memory implementations of them.
+- **AI code is tested without network calls.** The Gemini chat and embedding clients sit behind `AiChatClient` and `AiEmbeddingClient` interfaces, so tests substitute fakes and never need an API key.
+- **Refusals are verified by behaviour.** The refusal tests check that the fake client received no prompt, which confirms Gemini was not called, in addition to checking the response text.
+- **Chunking is pinned down.** Tests cover overlap between consecutive chunks and guarantee the chunking loop terminates on long input.
+
+## Bugs worth mentioning
+
+- **Silent data loss from `INSERT OR REPLACE`.** It deletes and re-inserts the row, which triggered `ON DELETE CASCADE` and removed a member's class enrolments on every update. Replaced with `ON CONFLICT DO UPDATE`.
+- **Password hash in API responses.** A public getter on `User` was being serialized into JSON. Excluded with `@JsonIgnore`.
+- **A type error the tests could not see.** A `DATE` column was being written with `setString()`. SQLite had tolerated it; PostgreSQL rejected it. Because the tests run against in-memory fakes, they never touched the SQL.
+- **Embedding size mismatch.** The embedding API returned 3072-dimension vectors while the column was defined for 768. Fixing the code was not enough, because `ADD COLUMN IF NOT EXISTS` does not change an existing column; the column had to be recreated.
+- **Failed deploys that looked healthy.** The host keeps serving the last successful build when a new deploy fails. Four deploys failed on a missing environment variable while the live site appeared to work.
+
+## Known limitations
+
+- Most tests run against in-memory fakes, so SQL-level errors are not caught by the test suite.
+- There are no frontend or end-to-end tests yet.
+- Members cannot enrol themselves in classes; an admin does it.
+- Single gym only. There is no multi-tenancy.
+- Payments are recorded in the system, not processed through a payment provider.
+- Free-tier hosting means cold starts, and the Gemini free tier has a daily request limit.
+
+## Running locally
 
 **Backend**
+
+Requires Java 21, Maven, and a PostgreSQL database with pgvector available (Neon works).
+
 ```bash
-# Requires: Java 21, Maven, a PostgreSQL database (Neon or local)
 git clone https://github.com/aqsak-dev99/MyFitness-Gym-Management-System.git
 cd MyFitness-Gym-Management-System
 
-# Set required environment variables:
 export DATABASE_URL=<your-postgres-connection-string>
 export GEMINI_API_KEY=<your-gemini-api-key>
 export JWT_SECRET=<any-long-random-string>
+export GEMINI_MODEL=<gemini-model-name>   # optional
 
 mvn clean package
 java -jar target/myfitness.jar
 ```
-Backend runs on `http://localhost:8080`.
+
+The backend runs on http://localhost:8080.
 
 **Frontend**
+
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
-Frontend runs on `http://localhost:5173` and talks to `localhost:8080` by default — no extra configuration needed for local development.
 
----
+The frontend runs on http://localhost:5173 and uses `localhost:8080` as the API by default.
 
-## Testing
+## API
 
-```bash
-mvn clean package
-```
-119 tests covering service-layer business logic, repository behavior, and billing/membership edge cases.
-
----
+53 REST endpoints across Members, Staff, Bootcamp Classes, Memberships, Payments, Documents, AI, and Auth. Interactive documentation is at `/swagger-ui.html` on the running backend.
 
 ## License
 
