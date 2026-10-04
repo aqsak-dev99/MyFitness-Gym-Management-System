@@ -186,3 +186,8 @@
   background: var(--color-danger-soft);
   color: var(--color-danger);
 }
+
+/* The logo artwork is purple/blue; shown in greyscale so it matches the
+   black / grey / white palette without needing a second image file. */
+.brand img,
+.mobileBar img { filter: grayscale(1); }

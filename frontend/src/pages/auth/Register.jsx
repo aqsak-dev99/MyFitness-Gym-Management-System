@@ -78,14 +78,15 @@ export default function Register() {
 
   return (
     <div className={styles.authRoot}>
+      <div className={styles.shell}>
       <div className={styles.brandPanel}>
-        <div className={styles.brandMarkGlow}>
-          <div className={styles.brandMark}><DumbbellMark /></div>
+        <img src="/assets/gym-hero.jpg" alt="" className={styles.brandPhoto} />
+        <div className={styles.brandScrim} />
+        <div className={styles.brandTop}>
+          <DumbbellMark />
+          <span>MyFitness</span>
         </div>
-        <h1 className={styles.brandWordmark}>
-          My<span className={styles.brandAccent}>Fitness</span>
-        </h1>
-        <p className={styles.brandTagline}>Stronger &bull; Healthier &bull; Happier</p>
+        <p className={styles.brandCaption}>Stronger, healthier, happier.</p>
       </div>
 
       <div className={styles.formPanel}>
@@ -96,7 +97,9 @@ export default function Register() {
           </div>
 
           <h2 className={styles.title}>Create an account</h2>
-          <p className={styles.subtitle}>Join MyFitness</p>
+          <p className={styles.subtitle}>
+            Already have an account? <Link to="/login">Log in</Link>
+          </p>
 
           <form onSubmit={handleSubmit} className="stack">
           <ErrorMessage>{error}</ErrorMessage>
@@ -181,11 +184,8 @@ export default function Register() {
             Create account
           </Button>
         </form>
-
-          <p className={styles.switchLink}>
-            Already have an account? <Link to="/login">Log in</Link>
-          </p>
         </div>
+      </div>
       </div>
     </div>
   );

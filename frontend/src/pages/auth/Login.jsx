@@ -46,14 +46,15 @@ export default function Login() {
 
   return (
     <div className={styles.authRoot}>
+      <div className={styles.shell}>
       <div className={styles.brandPanel}>
-        <div className={styles.brandMarkGlow}>
-          <div className={styles.brandMark}><DumbbellMark /></div>
+        <img src="/assets/gym-hero.jpg" alt="" className={styles.brandPhoto} />
+        <div className={styles.brandScrim} />
+        <div className={styles.brandTop}>
+          <DumbbellMark />
+          <span>MyFitness</span>
         </div>
-        <h1 className={styles.brandWordmark}>
-          My<span className={styles.brandAccent}>Fitness</span>
-        </h1>
-        <p className={styles.brandTagline}>Stronger &bull; Healthier &bull; Happier</p>
+        <p className={styles.brandCaption}>Stronger, healthier, happier.</p>
       </div>
 
       <div className={styles.formPanel}>
@@ -64,8 +65,10 @@ export default function Login() {
             <span className={styles.cardBrand}>MyFitness</span>
           </div>
 
-          <h2 className={styles.title}>Welcome back 👋</h2>
-          <p className={styles.subtitle}>Sign in to continue your fitness journey</p>
+          <h2 className={styles.title}>Welcome back</h2>
+          <p className={styles.subtitle}>
+            Don't have an account? <Link to="/register">Create one</Link>
+          </p>
 
           <form onSubmit={handleSubmit} className="stack">
             <ErrorMessage>{error}</ErrorMessage>
@@ -93,11 +96,8 @@ export default function Login() {
               Log In
             </Button>
           </form>
-
-          <p className={styles.switchLink}>
-            Don't have an account? <Link to="/register">Create one</Link>
-          </p>
         </div>
+      </div>
       </div>
     </div>
   );
