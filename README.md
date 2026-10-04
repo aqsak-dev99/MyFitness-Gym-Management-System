@@ -13,26 +13,16 @@ A full-stack gym management system with role-based access, membership billing, a
 
 > Hosted on Render's free tier. The first request after a period of inactivity can take 30–60 seconds while the server wakes up.
 
-<!-- TODO: add screenshots, then uncomment
 ## Screenshots
 
-<img width="1280" height="612" alt="Screenshot 2026-10-05 at 1 40 41 AM" src="https://github.com/user-attachments/assets/cd5d8f1f-70dd-4aff-8c1d-d7029f060e7e" />
-
-
-<img width="1280" height="602" alt="Screenshot 2026-10-05 at 1 44 53 AM" src="https://github.com/user-attachments/assets/04e116b3-aaa3-4f21-a8ec-e1a37d832de2" />
-
-<img width="1280" height="604" alt="Screenshot 2026-10-05 at 1 47 16 AM" src="https://github.com/user-attachments/assets/8cbbcc79-1167-48fb-9ba0-aa69cd697218" />
-
-<img width="1280" height="610" alt="Screenshot 2026-10-05 at 1 44 25 AM" src="https://github.com/user-attachments/assets/281f12ed-027f-4ad8-95bd-dc3567c5c0ab" />
-
-
-<img width="1280" height="602" alt="Screenshot 2026-10-05 at 1 44 53 AM" src="https://github.com/user-attachments/assets/68d07b3b-2f63-41ad-8e1e-6771ca962f24" />
-
-
-| Admin dashboard | Member dashboard | AI Assistant |
-|---|---|---|
-| ![Admin dashboard](docs/img/admin-dashboard.png) | ![Member dashboard](docs/img/member-dashboard.png) | ![AI Assistant](docs/img/ai-assistant.png) |
--->
+<p>
+  <img width="49%" alt="MyFitness screenshot" src="https://github.com/user-attachments/assets/cd5d8f1f-70dd-4aff-8c1d-d7029f060e7e" />
+  <img width="49%" alt="MyFitness screenshot" src="https://github.com/user-attachments/assets/04e116b3-aaa3-4f21-a8ec-e1a37d832de2" />
+</p>
+<p>
+  <img width="49%" alt="MyFitness screenshot" src="https://github.com/user-attachments/assets/8cbbcc79-1167-48fb-9ba0-aa69cd697218" />
+  <img width="49%" alt="MyFitness screenshot" src="https://github.com/user-attachments/assets/281f12ed-027f-4ad8-95bd-dc3567c5c0ab" />
+</p>
 
 ## What it does
 
