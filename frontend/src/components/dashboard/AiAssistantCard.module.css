@@ -33,7 +33,7 @@
   50%      { transform: translateY(-6px); }
 }
 
-.title { font-size: 1.05rem; font-weight: 800; color: var(--color-text-primary); margin: 0 0 var(--dash-space-2); }
+.title { font-size: 1.05rem; font-weight: 700; color: var(--color-text-primary); margin: 0 0 var(--dash-space-2); }
 .body { font-size: 0.85rem; color: var(--color-text-secondary); margin: 0 0 var(--dash-space-2); }
 
 .list {

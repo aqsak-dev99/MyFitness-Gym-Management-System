@@ -4,7 +4,7 @@
   border: 1px solid var(--color-border); background: transparent;
   color: var(--color-text-primary); font-weight: 700; font-size: 0.85rem; cursor: pointer; white-space: nowrap;
 }
-.title { color: var(--color-text-primary); font-size: 2rem; font-weight: 800; letter-spacing: -0.02em; margin: 0; }
+.title { color: var(--color-text-primary); font-size: 1.625rem; font-weight: 700; letter-spacing: -0.02em; margin: 0; }
 .subtitle { color: var(--color-text-secondary); margin: var(--dash-space-1) 0 0; }
 
 .formError { color: var(--color-danger); font-size: 0.85rem; }
@@ -26,7 +26,7 @@
   gap: 4px;
 }
 .kpiLabel { font-size: 0.72rem; color: var(--color-text-secondary); font-weight: 600; }
-.kpiValue { font-size: 1.5rem; font-weight: 800; color: var(--color-text-primary); }
+.kpiValue { font-size: 1.5rem; font-weight: 700; color: var(--color-text-primary); }
 .kpiCard.green .kpiValue { color: var(--color-success); }
 .kpiCard.blue .kpiValue { color: var(--color-bootcamp-accent); }
 .kpiCard.purple .kpiValue { color: var(--color-primary); }
@@ -53,7 +53,7 @@
 /* Breakdown */
 .breakdownList { display: flex; flex-direction: column; gap: var(--dash-space-3); }
 .breakdownLabelRow { display: flex; justify-content: space-between; font-size: 0.82rem; color: var(--color-text-primary); margin-bottom: 6px; }
-.breakdownCount { font-weight: 800; }
+.breakdownCount { font-weight: 700; }
 .barTrack { height: 7px; border-radius: 999px; background: var(--color-border); overflow: hidden; }
 .barFill { height: 100%; border-radius: 999px; }
 .barFill.green { background: var(--color-success); }
@@ -75,7 +75,7 @@
 .memberName { font-size: 0.85rem; font-weight: 700; color: var(--color-text-primary); }
 .paymentDesc { font-size: 0.8rem; color: var(--color-text-secondary); }
 .paymentDate { font-size: 0.78rem; color: var(--color-text-secondary); }
-.paymentAmount { font-size: 0.85rem; font-weight: 800; color: var(--color-success); text-align: right; }
+.paymentAmount { font-size: 0.85rem; font-weight: 700; color: var(--color-success); text-align: right; }
 
 /* Monthly chart — hand-rolled, no library */
 .chart { display: flex; align-items: flex-end; gap: var(--dash-space-3); height: 200px; padding-top: var(--dash-space-3); }

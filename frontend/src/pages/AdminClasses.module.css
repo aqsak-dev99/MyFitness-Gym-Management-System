@@ -1,5 +1,5 @@
 .header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: var(--dash-space-4); gap: var(--dash-space-3); flex-wrap: wrap; }
-.title { color: var(--color-text-primary); font-size: 2rem; font-weight: 800; letter-spacing: -0.02em; margin: 0; }
+.title { color: var(--color-text-primary); font-size: 1.625rem; font-weight: 700; letter-spacing: -0.02em; margin: 0; }
 .subtitle { color: var(--color-text-secondary); margin: var(--dash-space-1) 0 0; }
 
 .addBtn {
@@ -36,10 +36,10 @@
 .cancelledCard { opacity: 0.65; }
 
 .cardTop { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: var(--dash-space-3); }
-.classId { font-size: 0.68rem; font-weight: 800; color: var(--color-primary); }
+.classId { font-size: 0.68rem; font-weight: 700; color: var(--color-primary); }
 .className { font-size: 1rem; font-weight: 700; color: var(--color-text-primary); margin: 2px 0; }
 .schedule { font-size: 0.78rem; color: var(--color-text-secondary); }
-.cancelledBadge { font-size: 0.62rem; font-weight: 800; color: var(--color-danger); background: var(--color-danger-soft); padding: 0.2rem 0.5rem; border-radius: 999px; white-space: nowrap; }
+.cancelledBadge { font-size: 0.62rem; font-weight: 700; color: var(--color-danger); background: var(--color-danger-soft); padding: 0.2rem 0.5rem; border-radius: 999px; white-space: nowrap; }
 
 .capacityRow { display: flex; align-items: center; gap: var(--dash-space-2); margin-bottom: var(--dash-space-3); }
 .barTrack { flex: 1; height: 6px; border-radius: 999px; background: var(--color-border); overflow: hidden; }

@@ -4,7 +4,7 @@
   border: 1px solid var(--color-border); background: transparent;
   color: var(--color-text-primary); font-weight: 700; font-size: 0.85rem; cursor: pointer; white-space: nowrap;
 }
-.title { color: var(--color-text-primary); font-size: 2rem; font-weight: 800; letter-spacing: -0.02em; margin: 0; }
+.title { color: var(--color-text-primary); font-size: 1.625rem; font-weight: 700; letter-spacing: -0.02em; margin: 0; }
 .subtitle { color: var(--color-text-secondary); margin: var(--dash-space-1) 0 0; }
 .formError { color: var(--color-danger); font-size: 0.85rem; }
 .empty { color: var(--color-text-secondary); font-size: 0.82rem; margin: 0; }
@@ -18,12 +18,12 @@
   border-radius: var(--dash-radius-lg);
   margin-bottom: var(--dash-space-4);
 }
-.cardTitle { display: block; font-size: 0.9rem; font-weight: 800; color: var(--color-text-primary); margin-bottom: var(--dash-space-4); }
+.cardTitle { display: block; font-size: 0.9rem; font-weight: 700; color: var(--color-text-primary); margin-bottom: var(--dash-space-4); }
 .subTitle { display: block; font-size: 0.78rem; font-weight: 700; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: var(--dash-space-3); }
 
 .kpiRow { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--dash-space-3); margin-bottom: var(--dash-space-4); }
 .kpi { padding: var(--dash-space-3); background: var(--color-bg); border: 1px solid var(--color-border); border-radius: var(--dash-radius-md); display: flex; flex-direction: column; gap: 4px; }
-.kpiValue { font-size: 1.6rem; font-weight: 800; color: var(--color-text-primary); }
+.kpiValue { font-size: 1.6rem; font-weight: 700; color: var(--color-text-primary); }
 .kpiLabel { font-size: 0.72rem; color: var(--color-text-secondary); font-weight: 600; }
 .kpi.green .kpiValue { color: var(--color-success); }
 .kpi.red .kpiValue { color: var(--color-danger); }

@@ -32,7 +32,7 @@
 .green .iconBadge { background: var(--color-success-soft); }
 
 .statLabel { font-size: 0.82rem; color: var(--color-text-secondary); font-weight: 600; margin-bottom: 2px; }
-.statValue { font-size: 2.4rem; font-weight: 800; letter-spacing: -0.02em; color: var(--color-text-primary); line-height: 1.1; }
+.statValue { font-size: 2.4rem; font-weight: 700; letter-spacing: -0.02em; color: var(--color-text-primary); line-height: 1.1; }
 .statSub { font-size: 0.74rem; color: var(--color-text-secondary); margin-top: var(--dash-space-2); }
 .purple .statSub { color: var(--color-success); font-weight: 600; }
 

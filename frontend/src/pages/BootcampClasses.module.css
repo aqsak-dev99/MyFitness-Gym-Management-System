@@ -1,4 +1,4 @@
-.title { color: var(--dash-text); font-size: 2rem; font-weight: 800; letter-spacing: -0.02em; margin: 0 0 0.4rem; }
+.title { color: var(--dash-text); font-size: 1.625rem; font-weight: 700; letter-spacing: -0.02em; margin: 0 0 0.4rem; }
 .subtitle { color: var(--dash-text-muted); margin: 0 0 var(--dash-space-6); }
 .empty { color: var(--dash-text-muted); margin: 0; }
 

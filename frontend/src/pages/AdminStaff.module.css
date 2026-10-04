@@ -1,5 +1,5 @@
 .header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: var(--dash-space-4); gap: var(--dash-space-3); flex-wrap: wrap; }
-.title { color: var(--color-text-primary); font-size: 2rem; font-weight: 800; letter-spacing: -0.02em; margin: 0; }
+.title { color: var(--color-text-primary); font-size: 1.625rem; font-weight: 700; letter-spacing: -0.02em; margin: 0; }
 .subtitle { color: var(--color-text-secondary); margin: var(--dash-space-1) 0 0; }
 
 .addBtn {
@@ -49,7 +49,7 @@
 .email { font-size: 0.82rem; color: var(--color-text-primary); }
 .roleText { font-size: 0.72rem; color: var(--color-text-secondary); }
 
-.statusBadge { font-size: 0.68rem; font-weight: 800; padding: 0.25rem 0.6rem; border-radius: 999px; width: fit-content; }
+.statusBadge { font-size: 0.68rem; font-weight: 700; padding: 0.25rem 0.6rem; border-radius: 999px; width: fit-content; }
 .statusBadge.available { background: var(--color-success-soft); color: var(--color-success); }
 .statusBadge.unavailable { background: var(--color-danger-soft); color: var(--color-danger); }
 

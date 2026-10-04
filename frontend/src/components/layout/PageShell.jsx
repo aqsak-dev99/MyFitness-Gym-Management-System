@@ -37,7 +37,7 @@ export default function PageShell({ children, backgroundImage, heroBanner }) {
       )}
       <BackgroundDecoration />
       <NavBar />
-      {heroBanner}
+      {heroBanner && <div className={styles.heroBannerSlot}>{heroBanner}</div>}
       <div className={styles.content}>{children}</div>
     </div>
   );

@@ -16,7 +16,7 @@ export default function AdminHeroBanner({ now }) {
       <img src="/assets/admin-hero-banner.jpg" alt="" className={styles.image} />
       <div className={styles.scrim} />
       <div className={styles.content}>
-        <h1 className={styles.greeting}>Welcome back, Admin! 👋</h1>
+        <h1 className={styles.greeting}>Welcome back, Admin</h1>
         <p className={styles.subtitle}>Here's what's happening at your gym today.</p>
       </div>
       <div className={styles.dateCard}>

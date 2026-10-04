@@ -1,4 +1,4 @@
-.title { color: var(--dash-text); font-size: 2rem; font-weight: 800; letter-spacing: -0.02em; margin: 0 0 var(--dash-space-5); }
+.title { color: var(--dash-text); font-size: 1.625rem; font-weight: 700; letter-spacing: -0.02em; margin: 0 0 var(--dash-space-5); }
 .errorText { color: var(--dash-accent-red); }
 .stack { display: flex; flex-direction: column; gap: var(--dash-space-4); }
 
@@ -9,7 +9,7 @@
   display: flex; align-items: center; justify-content: center;
   box-shadow: 0 0 0 1px var(--dash-glass-border);
 }
-.name { color: var(--dash-text); font-size: 1.3rem; font-weight: 800; }
+.name { color: var(--dash-text); font-size: 1.3rem; font-weight: 700; }
 .username { color: var(--dash-text-muted); font-size: 0.85rem; margin-top: 2px; }
 
 .fieldGrid { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--dash-space-4); margin-bottom: var(--dash-space-4); }

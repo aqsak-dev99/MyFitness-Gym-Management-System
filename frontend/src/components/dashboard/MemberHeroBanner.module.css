@@ -36,8 +36,7 @@
 
 .greeting {
   color: #ffffff;
-  font-size: 2rem;
-  font-weight: 800;
+  font-size: 1.625rem; font-weight: 700;
   letter-spacing: -0.02em;
   margin: 0 0 4px;
   text-shadow: 0 2px 12px rgba(0,0,0,0.4);

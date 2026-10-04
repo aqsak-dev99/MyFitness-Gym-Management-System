@@ -116,3 +116,7 @@
 :global([data-theme="light"]) .mountainLayer {
   display: none;
 }
+
+/* Decoration removed: plain gradient background only. */
+.starsLayer,
+.mountainLayer { display: none; }
