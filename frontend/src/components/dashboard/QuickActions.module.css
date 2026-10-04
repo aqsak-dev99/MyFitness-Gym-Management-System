@@ -76,3 +76,22 @@
 @media (max-width: 500px) {
   .actionGrid { grid-template-columns: 1fr; }
 }
+
+/* Higher-contrast monochrome tiles: white tile, solid icon chip, plain
+   arrow. Written as overrides so the per-colour classes above still
+   exist but no longer set the look. */
+.actionGrid .actionCard {
+  background: var(--color-bg-elevated);
+  border-color: var(--color-border-strong);
+}
+.actionGrid .actionCard:hover { border-color: var(--color-primary); }
+.actionGrid .actionIcon {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+}
+.actionGrid .arrowBtn {
+  background: transparent;
+  color: var(--color-text-secondary);
+}
+.actionGrid .actionCard:hover .arrowBtn { color: var(--color-text-primary); }
+.actionGrid .actionCardSub { padding-right: 34px; }
