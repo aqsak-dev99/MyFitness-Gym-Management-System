@@ -66,7 +66,7 @@
   width: 160px;
   height: auto;
   flex-shrink: 0;
-  filter: drop-shadow(0 0 10px rgba(74, 184, 247, 0.35));
+  filter: drop-shadow(0 0 10px var(--color-glow-primary));
 }
 
 .browseLink {
@@ -74,7 +74,7 @@
   align-items: center;
   gap: 0.4rem;
   padding: 0.6rem 1.1rem;
-  border: 1px solid rgba(74, 184, 247, 0.4);
+  border: 1px solid var(--color-border-strong);
   border-radius: 10px;
   background: var(--dash-accent-blue-dim);
   color: var(--dash-accent-blue);
@@ -84,7 +84,7 @@
   white-space: nowrap;
   transition: background-color 0.15s ease;
 }
-.browseLink:hover { background: rgba(74, 184, 247, 0.24); text-decoration: none; }
+.browseLink:hover { background: var(--color-primary-soft); text-decoration: none; }
 .arrow { transition: transform 0.15s ease; }
 .browseLink:hover .arrow { transform: translateX(3px); }
 

@@ -12,10 +12,10 @@
   border-width: 1px;
 }
 
-.purple { border-color: rgba(155, 92, 246, 0.35); }
-.blue { border-color: rgba(74, 184, 247, 0.35); }
-.gold { border-color: rgba(245, 166, 35, 0.35); }
-.green { border-color: rgba(52, 199, 89, 0.35); }
+.purple { border-color: var(--color-border-strong); }
+.blue { border-color: var(--color-border-strong); }
+.gold { border-color: var(--color-border-strong); }
+.green { border-color: var(--color-border-strong); }
 
 .iconBadge {
   width: 42px;
@@ -29,12 +29,12 @@
 .purple .iconBadge { background: var(--color-primary-soft); }
 .blue .iconBadge { background: var(--color-bootcamp-accent-soft); }
 .gold .iconBadge { background: var(--color-goal-accent-soft); }
-.green .iconBadge { background: rgba(52, 199, 89, 0.14); }
+.green .iconBadge { background: var(--color-success-soft); }
 
 .statLabel { font-size: 0.82rem; color: var(--color-text-secondary); font-weight: 600; margin-bottom: 2px; }
 .statValue { font-size: 2.4rem; font-weight: 800; letter-spacing: -0.02em; color: var(--color-text-primary); line-height: 1.1; }
 .statSub { font-size: 0.74rem; color: var(--color-text-secondary); margin-top: var(--dash-space-2); }
-.purple .statSub { color: #34c759; font-weight: 600; }
+.purple .statSub { color: var(--color-success); font-weight: 600; }
 
 @media (max-width: 900px) {
   .statsRow { grid-template-columns: repeat(2, 1fr); }

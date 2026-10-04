@@ -52,7 +52,7 @@ export default function AdminStatsGrid({
 
       <GlassCard className={`${styles.statCard} ${styles.green}`}>
         <div className={styles.iconBadge}>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#34c759" strokeWidth="1.7" strokeLinecap="round">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" style={{ color: 'var(--color-success)' }} strokeWidth="1.7" strokeLinecap="round">
             <path d="M12 2a10 10 0 100 20 10 10 0 000-20z" opacity="0.3" />
             <path d="M12 6v6l4 2" />
           </svg>

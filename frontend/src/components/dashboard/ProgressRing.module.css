@@ -12,13 +12,13 @@
 
 .track {
   fill: none;
-  stroke: rgba(255, 255, 255, 0.09);
+  stroke: var(--color-border);
 }
 
 .progress {
   fill: none;
   transition: stroke-dashoffset 1s cubic-bezier(0.16, 1, 0.3, 1);
-  filter: drop-shadow(0 0 10px rgba(155, 92, 246, 0.45));
+  filter: drop-shadow(0 0 10px var(--color-glow-primary));
 }
 
 .labelWrap {

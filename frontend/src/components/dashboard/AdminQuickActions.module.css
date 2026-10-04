@@ -19,12 +19,12 @@
 .purple .icon { background: var(--color-primary-soft); color: var(--color-primary); }
 .blue .icon { background: var(--color-bootcamp-accent-soft); color: var(--color-bootcamp-accent); }
 .gold .icon { background: var(--color-goal-accent-soft); color: var(--color-goal-accent); }
-.green .icon { background: rgba(52, 199, 89, 0.14); color: #34c759; }
+.green .icon { background: var(--color-success-soft); color: var(--color-success); }
 
 .purple:hover { border-color: var(--color-primary); }
 .blue:hover { border-color: var(--color-bootcamp-accent); }
 .gold:hover { border-color: var(--color-goal-accent); }
-.green:hover { border-color: #34c759; }
+.green:hover { border-color: var(--color-success); }
 
 .text { flex: 1; display: flex; flex-direction: column; }
 .title { font-size: 0.83rem; font-weight: 700; color: var(--color-text-primary); }

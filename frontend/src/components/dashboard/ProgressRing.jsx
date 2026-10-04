@@ -9,7 +9,7 @@ import styles from './ProgressRing.module.css';
  * without this, multiple rings on one page would silently share (and
  * corrupt) each other's gradient.
  */
-export default function ProgressRing({ percent, label, sublabel, colorFrom = '#34e0a1', colorTo = '#1a9d6f', size = 120 }) {
+export default function ProgressRing({ percent, label, sublabel, colorFrom = 'var(--color-primary)', colorTo = 'var(--color-primary-strong)', size = 120 }) {
   const gradientId = useId();
   const strokeWidth = 9;
   const radius = (size - strokeWidth) / 2;
@@ -28,8 +28,8 @@ export default function ProgressRing({ percent, label, sublabel, colorFrom = '#3
       <svg width={size} height={size} className={styles.svg}>
         <defs>
           <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor={colorFrom} />
-            <stop offset="100%" stopColor={colorTo} />
+            <stop offset="0%" style={{ stopColor: colorFrom }} />
+            <stop offset="100%" style={{ stopColor: colorTo }} />
           </linearGradient>
         </defs>
         <circle

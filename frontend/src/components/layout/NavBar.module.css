@@ -153,7 +153,7 @@
    specifically, not changed globally. Nothing outside the sidebar in
    light mode is affected by any rule below. */
 :global([data-theme="light"]) .sidebar {
-  background: linear-gradient(180deg, #1c1732 0%, #120f22 100%);
+  background: linear-gradient(180deg, #1c1c1f 0%, #0f0f10 100%);
   border-right: 1px solid rgba(255, 255, 255, 0.08);
 }
 :global([data-theme="light"]) .brand { color: #ffffff; }
@@ -163,8 +163,8 @@
   background: rgba(255, 255, 255, 0.08);
 }
 :global([data-theme="light"]) .navLinkActive {
-  color: #b998fa;
-  background: rgba(155, 92, 246, 0.18);
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.14);
 }
 :global([data-theme="light"]) .footer { border-top-color: rgba(255, 255, 255, 0.1); }
 :global([data-theme="light"]) .themeToggle {
@@ -175,8 +175,8 @@
 :global([data-theme="light"]) .themeToggle:hover { background: rgba(255, 255, 255, 0.1); }
 :global([data-theme="light"]) .username { color: #ffffff; }
 :global([data-theme="light"]) .roleBadge {
-  color: #b998fa;
-  background: rgba(155, 92, 246, 0.2);
+  color: #e4e4e7;
+  background: rgba(255, 255, 255, 0.14);
 }
 :global([data-theme="light"]) .logoutBtn {
   border-color: rgba(255, 255, 255, 0.15);

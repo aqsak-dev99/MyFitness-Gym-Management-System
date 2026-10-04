@@ -31,12 +31,12 @@ export default function BackgroundDecoration() {
       <svg className={styles.mountainLayer} viewBox="0 0 400 300" preserveAspectRatio="xMaxYMax meet">
         <defs>
           <linearGradient id="mtnGlow" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#9b5cf6" />
-            <stop offset="100%" stopColor="#4ab8f7" />
+            <stop offset="0%" style={{ stopColor: 'var(--color-text-secondary)' }} />
+            <stop offset="100%" style={{ stopColor: 'var(--color-border-strong)' }} />
           </linearGradient>
         </defs>
-        <polygon points="60,300 180,120 260,220 400,60 400,300" fill="rgba(155,92,246,0.05)" stroke="url(#mtnGlow)" strokeWidth="1.2" opacity="0.5" />
-        <polygon points="0,300 120,180 220,260 400,140 400,300" fill="rgba(74,184,247,0.06)" stroke="url(#mtnGlow)" strokeWidth="1" opacity="0.35" />
+        <polygon points="60,300 180,120 260,220 400,60 400,300" style={{ fill: 'var(--color-page-glow-bootcamp)' }} stroke="url(#mtnGlow)" strokeWidth="1.2" opacity="0.5" />
+        <polygon points="0,300 120,180 220,260 400,140 400,300" style={{ fill: 'var(--color-page-glow-ai)' }} stroke="url(#mtnGlow)" strokeWidth="1" opacity="0.35" />
       </svg>
     </>
   );

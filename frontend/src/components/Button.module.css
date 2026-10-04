@@ -17,13 +17,13 @@
 }
 
 .primary {
-  background: linear-gradient(135deg, #9b5cf6, #7c3aed);
-  color: #06170e;
-  box-shadow: 0 14px 32px -8px rgba(155, 92, 246, 0.55);
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-strong));
+  color: var(--color-on-primary);
+  box-shadow: 0 14px 32px -10px var(--color-shadow);
 }
 .primary:hover:not(:disabled) {
   transform: translateY(-1px);
-  box-shadow: 0 18px 38px -8px rgba(155, 92, 246, 0.65);
+  box-shadow: 0 18px 38px -10px var(--color-shadow);
 }
 
 .secondary {
@@ -38,8 +38,8 @@
 .spinner {
   width: 16px;
   height: 16px;
-  border: 2px solid rgba(6, 23, 14, 0.35);
-  border-top-color: #06170e;
+  border: 2px solid rgba(128, 128, 128, 0.35);
+  border-top-color: var(--color-on-primary);
   border-radius: 50%;
   animation: spin 0.6s linear infinite;
 }

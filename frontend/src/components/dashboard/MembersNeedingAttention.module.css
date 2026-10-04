@@ -19,7 +19,7 @@
   gap: 2px;
   margin-bottom: 2px;
 }
-.frozenBanner { background: var(--color-bootcamp-accent-soft); border-color: rgba(74, 184, 247, 0.3); margin-top: var(--dash-space-2); }
+.frozenBanner { background: var(--color-info-soft); border-color: color-mix(in srgb, var(--color-info) 35%, transparent); margin-top: var(--dash-space-2); }
 .groupTitle { font-weight: 800; font-size: 0.88rem; color: var(--color-text-primary); }
 .groupSub { font-size: 0.78rem; color: var(--color-text-secondary); }
 
@@ -33,5 +33,5 @@
 .rowInfo { flex: 1; display: flex; flex-direction: column; }
 .name { font-size: 0.85rem; font-weight: 700; color: var(--color-text-primary); }
 .status { font-size: 0.75rem; color: var(--color-danger); }
-.statusFrozen { font-size: 0.75rem; color: var(--color-bootcamp-accent); }
+.statusFrozen { font-size: 0.75rem; color: var(--color-info); }
 .memberId { font-size: 0.72rem; color: var(--color-text-secondary); font-weight: 600; }

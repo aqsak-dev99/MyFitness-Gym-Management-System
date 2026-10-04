@@ -46,8 +46,8 @@ export default function MembershipCard({ membership }) {
           label={`${membership.daysRemaining}`}
           sublabel="days left"
           size={104}
-          colorFrom={isFrozen ? '#e2766a' : '#b57bf5'}
-          colorTo={isFrozen ? '#c14f42' : '#7c3aed'}
+          colorFrom={isFrozen ? 'var(--color-danger)' : 'var(--color-primary)'}
+          colorTo={isFrozen ? 'var(--color-danger)' : 'var(--color-primary-strong)'}
         />
 
         <div className={styles.stats}>

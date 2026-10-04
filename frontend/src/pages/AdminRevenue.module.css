@@ -27,10 +27,10 @@
 }
 .kpiLabel { font-size: 0.72rem; color: var(--color-text-secondary); font-weight: 600; }
 .kpiValue { font-size: 1.5rem; font-weight: 800; color: var(--color-text-primary); }
-.kpiCard.green .kpiValue { color: #34c759; }
+.kpiCard.green .kpiValue { color: var(--color-success); }
 .kpiCard.blue .kpiValue { color: var(--color-bootcamp-accent); }
 .kpiCard.purple .kpiValue { color: var(--color-primary); }
-.kpiCard.gold .kpiValue { color: var(--color-goal-accent); }
+.kpiCard.gold .kpiValue { color: var(--color-warning); }
 .kpiCard.red .kpiValue { color: var(--color-danger); }
 
 .midGrid {
@@ -56,8 +56,8 @@
 .breakdownCount { font-weight: 800; }
 .barTrack { height: 7px; border-radius: 999px; background: var(--color-border); overflow: hidden; }
 .barFill { height: 100%; border-radius: 999px; }
-.barFill.green { background: #34c759; }
-.barFill.gold { background: var(--color-goal-accent); }
+.barFill.green { background: var(--color-success); }
+.barFill.gold { background: var(--color-warning); }
 .barFill.red { background: var(--color-danger); }
 .barFill.gray { background: var(--color-text-secondary); }
 
@@ -75,7 +75,7 @@
 .memberName { font-size: 0.85rem; font-weight: 700; color: var(--color-text-primary); }
 .paymentDesc { font-size: 0.8rem; color: var(--color-text-secondary); }
 .paymentDate { font-size: 0.78rem; color: var(--color-text-secondary); }
-.paymentAmount { font-size: 0.85rem; font-weight: 800; color: #34c759; text-align: right; }
+.paymentAmount { font-size: 0.85rem; font-weight: 800; color: var(--color-success); text-align: right; }
 
 /* Monthly chart — hand-rolled, no library */
 .chart { display: flex; align-items: flex-end; gap: var(--dash-space-3); height: 200px; padding-top: var(--dash-space-3); }

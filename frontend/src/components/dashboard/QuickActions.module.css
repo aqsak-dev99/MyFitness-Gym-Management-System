@@ -8,7 +8,7 @@
 
 .actionGrid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: var(--dash-space-3);
 }
 
@@ -34,19 +34,19 @@
 
 .blue { background: var(--color-bootcamp-accent-soft); }
 .blue:hover { border-color: var(--color-bootcamp-accent); }
-.blue .actionIcon { background: rgba(74, 184, 247, 0.22); color: var(--color-bootcamp-accent); }
+.blue .actionIcon { background: var(--color-primary-soft); color: var(--color-bootcamp-accent); }
 
 .pink { background: var(--color-ai-accent-soft); }
 .pink:hover { border-color: var(--color-ai-accent); }
-.pink .actionIcon { background: rgba(240, 98, 156, 0.22); color: var(--color-ai-accent); }
+.pink .actionIcon { background: var(--color-primary-soft); color: var(--color-ai-accent); }
 
 .purple { background: var(--color-primary-soft); }
 .purple:hover { border-color: var(--color-primary); }
-.purple .actionIcon { background: rgba(155, 92, 246, 0.22); color: var(--color-primary); }
+.purple .actionIcon { background: var(--color-primary-soft); color: var(--color-primary); }
 
 .gold { background: var(--color-goal-accent-soft); }
 .gold:hover { border-color: var(--color-goal-accent); }
-.gold .actionIcon { background: rgba(245, 166, 35, 0.22); color: var(--color-goal-accent); }
+.gold .actionIcon { background: var(--color-primary-soft); color: var(--color-goal-accent); }
 
 .actionCardTitle { color: var(--color-text-primary); font-weight: 700; font-size: 0.88rem; line-height: 1.3; }
 .actionCardSub { color: var(--color-text-secondary); font-size: 0.78rem; line-height: 1.4; }
@@ -65,10 +65,10 @@
 }
 .actionCard:hover .arrowBtn { transform: translateX(2px); }
 
-.blueArrow { background: rgba(74, 184, 247, 0.25); color: var(--color-bootcamp-accent); }
-.pinkArrow { background: rgba(240, 98, 156, 0.25); color: var(--color-ai-accent); }
-.purpleArrow { background: rgba(155, 92, 246, 0.25); color: var(--color-primary); }
-.goldArrow { background: rgba(245, 166, 35, 0.25); color: var(--color-goal-accent); }
+.blueArrow { background: var(--color-primary-soft); color: var(--color-bootcamp-accent); }
+.pinkArrow { background: var(--color-primary-soft); color: var(--color-ai-accent); }
+.purpleArrow { background: var(--color-primary-soft); color: var(--color-primary); }
+.goldArrow { background: var(--color-primary-soft); color: var(--color-goal-accent); }
 
 @media (max-width: 900px) {
   .actionGrid { grid-template-columns: repeat(2, 1fr); }

@@ -25,9 +25,9 @@
 .kpi { padding: var(--dash-space-3); background: var(--color-bg); border: 1px solid var(--color-border); border-radius: var(--dash-radius-md); display: flex; flex-direction: column; gap: 4px; }
 .kpiValue { font-size: 1.6rem; font-weight: 800; color: var(--color-text-primary); }
 .kpiLabel { font-size: 0.72rem; color: var(--color-text-secondary); font-weight: 600; }
-.kpi.green .kpiValue { color: #34c759; }
+.kpi.green .kpiValue { color: var(--color-success); }
 .kpi.red .kpiValue { color: var(--color-danger); }
-.kpi.gold .kpiValue { color: var(--color-goal-accent); }
+.kpi.gold .kpiValue { color: var(--color-warning); }
 .kpi.blue .kpiValue { color: var(--color-bootcamp-accent); }
 
 .twoCol { display: grid; grid-template-columns: 1fr 1fr; gap: var(--dash-space-4); }

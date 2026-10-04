@@ -5,7 +5,7 @@
 .addBtn {
   padding: 0.65rem 1.2rem; border-radius: 10px; border: none;
   background: linear-gradient(135deg, var(--color-primary), var(--color-primary-strong));
-  color: white; font-weight: 700; font-size: 0.85rem; cursor: pointer; white-space: nowrap;
+  color: var(--color-on-primary); font-weight: 700; font-size: 0.85rem; cursor: pointer; white-space: nowrap;
 }
 
 .addForm {
@@ -20,7 +20,7 @@
 .addForm input:disabled { opacity: 0.5; }
 .addForm button {
   padding: 0.55rem 1.1rem; border-radius: 8px; border: none; background: var(--color-primary);
-  color: white; font-weight: 700; font-size: 0.85rem; cursor: pointer;
+  color: var(--color-on-primary); font-weight: 700; font-size: 0.85rem; cursor: pointer;
 }
 .cancelFormBtn { background: transparent !important; border: 1px solid var(--color-border) !important; color: var(--color-text-secondary) !important; }
 
@@ -61,7 +61,7 @@
 
 .enrolForm { display: flex; gap: var(--dash-space-2); }
 .enrolForm input { flex: 1; padding: 0.45rem 0.7rem; border-radius: 6px; border: 1px solid var(--color-border); background: var(--color-bg); color: var(--color-text-primary); font-size: 0.8rem; }
-.enrolForm button { padding: 0.45rem 0.9rem; border-radius: 6px; border: none; background: var(--color-primary); color: white; font-size: 0.78rem; font-weight: 700; cursor: pointer; }
+.enrolForm button { padding: 0.45rem 0.9rem; border-radius: 6px; border: none; background: var(--color-primary); color: var(--color-on-primary); font-size: 0.78rem; font-weight: 700; cursor: pointer; }
 .enrolForm button:disabled { opacity: 0.5; }
 
 .formError { color: var(--color-danger); font-size: 0.8rem; margin: var(--dash-space-2) 0 0; width: 100%; }

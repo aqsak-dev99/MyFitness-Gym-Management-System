@@ -45,6 +45,9 @@
   line-height: 1.55;
   margin: 0;
   font-weight: 500;
+  flex: 1;
+  display: flex;
+  align-items: center;
 }
 
 .empty {
@@ -52,9 +55,12 @@
   font-size: 0.9rem;
   line-height: 1.6;
   margin: 0;
+  flex: 1;
+  display: flex;
+  align-items: center;
 }
 
-.editArea { display: flex; flex-direction: column; gap: var(--dash-space-2); }
+.editArea { display: flex; flex-direction: column; gap: var(--dash-space-2); flex: 1; }
 
 .textarea {
   width: 100%;
@@ -82,5 +88,5 @@
   border: none;
 }
 .cancelBtn { background: transparent; color: var(--dash-text-muted); }
-.saveBtn { background: var(--dash-accent-gold); color: #201400; }
+.saveBtn { background: var(--color-primary); color: var(--color-on-primary); }
 .saveBtn:disabled { opacity: 0.6; cursor: not-allowed; }

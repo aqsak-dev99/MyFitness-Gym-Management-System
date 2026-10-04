@@ -9,49 +9,60 @@
    --dash-* names below are backward-compatible aliases pointing
    at these new semantic tokens — every existing component that
    already references --dash-accent-green, --dash-text, etc. gets
-   the new purple-based palette and full light/dark support
+   the monochrome (black / grey / white) palette and full light/dark support
    automatically, with zero changes needed in those files. New
    components should reference the --color-* names directly. */
 :root {
   /* Dark theme (default) */
-  --color-bg: #07070d;
-  --color-bg-elevated: #0f0e1a;
-  --color-surface: rgba(255, 255, 255, 0.055);
-  --color-surface-strong: rgba(255, 255, 255, 0.08);
+  --color-bg: #0a0a0a;
+  --color-bg-elevated: #121212;
+  --color-surface: rgba(255, 255, 255, 0.05);
+  --color-surface-strong: rgba(255, 255, 255, 0.075);
   --color-surface-hover: rgba(255, 255, 255, 0.09);
   --color-border: rgba(255, 255, 255, 0.10);
   --color-border-strong: rgba(255, 255, 255, 0.22);
-  --color-text-primary: #f5f5f7;
-  --color-text-secondary: rgba(245, 245, 247, 0.58);
+  --color-text-primary: #f4f4f5;
+  --color-text-secondary: rgba(244, 244, 245, 0.62);
 
-  --color-primary: #9b5cf6;
-  --color-primary-strong: #7c3aed;
-  --color-primary-soft: rgba(155, 92, 246, 0.16);
+  --color-primary: #f4f4f5;
+  --color-primary-strong: #d4d4d8;
+  --color-primary-soft: rgba(255, 255, 255, 0.10);
+  /* Text and icons placed ON a primary fill (buttons, the logo tile).
+     Primary is near-white in dark mode and near-black in light, so this
+     is the inverse of it. Never hardcode white/black on a primary fill. */
+  --color-on-primary: #0a0a0b;
 
-  --color-ai-accent: #f0629c;
-  --color-ai-accent-soft: rgba(240, 98, 156, 0.16);
-  --color-bootcamp-accent: #4ab8f7;
-  --color-bootcamp-accent-soft: rgba(74, 184, 247, 0.16);
-  --color-goal-accent: #f5a623;
-  --color-goal-accent-soft: rgba(245, 166, 35, 0.16);
+  --color-ai-accent: #e4e4e7;
+  --color-ai-accent-soft: rgba(255, 255, 255, 0.07);
+  --color-bootcamp-accent: #b4b4bb;
+  --color-bootcamp-accent-soft: rgba(255, 255, 255, 0.07);
+  --color-goal-accent: #8b8b94;
+  --color-goal-accent-soft: rgba(255, 255, 255, 0.07);
 
   /* Dedicated to PageShell's page-background glow specifically — not
      shared with badges/buttons/etc, which reuse the -soft tokens above
      for a completely different purpose (small accent fills, not a
-     large atmospheric wash). Kept identical to dark mode's existing
-     visual result here; only light mode's values below actually change. */
-  --color-page-glow-primary: rgba(155, 92, 246, 0.16);
-  --color-page-glow-ai: rgba(240, 98, 156, 0.16);
-  --color-page-glow-bootcamp: rgba(74, 184, 247, 0.16);
-  --color-cyan-accent: #67e8f9;
-  --color-cyan-accent-soft: rgba(103, 232, 249, 0.14);
+     large atmospheric wash). Grey in both themes: a soft white glow on
+     black in dark mode, a soft dark wash on light grey in light mode. */
+  --color-page-glow-primary: rgba(255, 255, 255, 0.09);
+  --color-page-glow-ai: rgba(255, 255, 255, 0.06);
+  --color-page-glow-bootcamp: rgba(255, 255, 255, 0.05);
+  --color-cyan-accent: #a1a1aa;
+  --color-cyan-accent-soft: rgba(255, 255, 255, 0.07);
   --color-danger: #e2766a;
   --color-danger-soft: rgba(226, 118, 106, 0.15);
+  /* Status colours that carry meaning — deliberately NOT part of the
+     monochrome brand palette. Warning is attention (due soon, nearly
+     full, no membership); info is a neutral state (frozen). */
+  --color-warning: #f5a623;
+  --color-warning-soft: rgba(245, 166, 35, 0.15);
+  --color-info: #8fb4d9;
+  --color-info-soft: rgba(143, 180, 217, 0.15);
   --color-success: #34c759;
   --color-success-soft: rgba(52, 199, 89, 0.15);
 
   --color-shadow: rgba(0, 0, 0, 0.45);
-  --color-glow-primary: rgba(155, 92, 246, 0.35);
+  --color-glow-primary: rgba(255, 255, 255, 0.12);
 
   /* Backward-compatible aliases — existing components unchanged */
   --dash-bg-deep: var(--color-bg);
@@ -97,47 +108,48 @@
 }
 
 /* Light theme — deliberately designed, not a dark-mode inversion.
-   Warm off-white base, soft lavender surfaces, dark navy text,
-   the same purple/pink/blue/amber/cyan hue family but re-balanced
-   for contrast on a light background. */
+   Neutral grey base with white surfaces and near-black text; primary
+   actions are near-black. Status colours (success / warning / info /
+   danger) keep their hue but are darkened for contrast on white. */
 [data-theme="light"] {
-  --color-bg: #f7f5fb;
+  --color-bg: #f4f4f5;
   --color-bg-elevated: #ffffff;
   --color-surface: #ffffff;
   --color-surface-strong: #ffffff;
-  --color-surface-hover: #f3effa;
-  --color-border: #e4dff0;
-  --color-border-strong: #cdbdf0;
-  --color-text-primary: #1e1b2e;
-  --color-text-secondary: #5b5470;
+  --color-surface-hover: #f0f0f2;
+  --color-border: #e4e4e7;
+  --color-border-strong: #cfcfd4;
+  --color-text-primary: #18181b;
+  --color-text-secondary: #5f5f68;
 
-  --color-primary: #7c3aed;
-  --color-primary-strong: #6425c9;
-  --color-primary-soft: rgba(124, 58, 237, 0.10);
+  --color-primary: #18181b;
+  --color-primary-strong: #000000;
+  --color-primary-soft: rgba(24, 24, 27, 0.07);
+  --color-on-primary: #fafafa;
 
-  --color-ai-accent: #db3384;
-  --color-ai-accent-soft: rgba(219, 51, 132, 0.10);
-  --color-bootcamp-accent: #1e88d8;
-  --color-bootcamp-accent-soft: rgba(30, 136, 216, 0.10);
-  --color-goal-accent: #d9820a;
-  --color-goal-accent-soft: rgba(217, 130, 10, 0.10);
+  --color-ai-accent: #3f3f46;
+  --color-ai-accent-soft: rgba(24, 24, 27, 0.06);
+  --color-bootcamp-accent: #5f5f68;
+  --color-bootcamp-accent-soft: rgba(24, 24, 27, 0.06);
+  --color-goal-accent: #8b8b94;
+  --color-goal-accent-soft: rgba(24, 24, 27, 0.06);
 
-  /* Same colors as dark mode, deliberately stronger alpha — a wash this
-     faint against a near-white base is barely perceptible, the actual
-     reason light mode was reading as "just white" despite the gradient
-     rule already being there and correctly wired. */
-  --color-page-glow-primary: rgba(124, 58, 237, 0.24);
-  --color-page-glow-ai: rgba(219, 51, 132, 0.20);
-  --color-page-glow-bootcamp: rgba(30, 136, 216, 0.20);
-  --color-cyan-accent: #0e9cb0;
-  --color-cyan-accent-soft: rgba(14, 156, 176, 0.10);
+    --color-page-glow-primary: rgba(24, 24, 27, 0.07);
+  --color-page-glow-ai: rgba(24, 24, 27, 0.05);
+  --color-page-glow-bootcamp: rgba(24, 24, 27, 0.04);
+  --color-cyan-accent: #52525b;
+  --color-cyan-accent-soft: rgba(24, 24, 27, 0.06);
   --color-danger: #c1121f;
   --color-danger-soft: rgba(193, 18, 31, 0.08);
-  --color-success: #1a8f3c;
+  --color-warning: #af5109;
+  --color-warning-soft: rgba(180, 83, 9, 0.10);
+  --color-info: #3b6ea5;
+  --color-info-soft: rgba(59, 110, 165, 0.10);
+  --color-success: #177c34;
   --color-success-soft: rgba(26, 143, 60, 0.10);
 
-  --color-shadow: rgba(30, 20, 60, 0.12);
-  --color-glow-primary: rgba(124, 58, 237, 0.18);
+  --color-shadow: rgba(24, 24, 27, 0.10);
+  --color-glow-primary: rgba(24, 24, 27, 0.16);
 }
 
 /* ── Reset ──────────────────────────────────────────── */

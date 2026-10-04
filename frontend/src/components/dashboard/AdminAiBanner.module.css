@@ -24,7 +24,7 @@
   padding: 0.55rem 1.1rem;
   border-radius: 10px;
   background: var(--color-primary);
-  color: white;
+  color: var(--color-on-primary);
   font-size: 0.82rem;
   font-weight: 700;
   white-space: nowrap;
@@ -40,7 +40,7 @@
 .robotImg {
   width: 100%;
   height: auto;
-  filter: drop-shadow(0 10px 20px rgba(155, 92, 246, 0.35));
+  filter: drop-shadow(0 10px 20px var(--color-shadow));
   transition: transform 0.18s ease;
 }
 .robotWrap:hover .robotImg {

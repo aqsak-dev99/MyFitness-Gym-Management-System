@@ -14,15 +14,15 @@
 
 .statusBadge { font-size: 0.65rem; font-weight: 800; letter-spacing: 0.04em; padding: 0.25rem 0.6rem; border-radius: 999px; white-space: nowrap; }
 .statusBadge.full { background: var(--color-danger-soft); color: var(--color-danger); }
-.statusBadge.near { background: var(--color-goal-accent-soft); color: var(--color-goal-accent); }
-.statusBadge.available { background: rgba(52, 199, 89, 0.14); color: #34c759; }
+.statusBadge.near { background: var(--color-warning-soft); color: var(--color-warning); }
+.statusBadge.available { background: var(--color-success-soft); color: var(--color-success); }
 
 .rowBottom { display: flex; align-items: center; gap: var(--dash-space-3); }
 .barTrack { flex: 1; height: 7px; border-radius: 999px; background: var(--color-border); overflow: hidden; }
 .barFill { height: 100%; border-radius: 999px; transition: width 0.3s ease; }
 .barFill.full { background: var(--color-danger); }
-.barFill.near { background: var(--color-goal-accent); }
-.barFill.available { background: #34c759; }
+.barFill.near { background: var(--color-warning); }
+.barFill.available { background: var(--color-success); }
 
 .counts { font-size: 0.78rem; color: var(--color-text-secondary); font-weight: 600; white-space: nowrap; }
 .pct { font-size: 0.78rem; color: var(--color-text-primary); font-weight: 800; width: 2.6rem; text-align: right; }
@@ -31,5 +31,5 @@
 .legend span { display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.75rem; color: var(--color-text-secondary); }
 .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
 .dot.full { background: var(--color-danger); }
-.dot.near { background: var(--color-goal-accent); }
-.dot.available { background: #34c759; }
+.dot.near { background: var(--color-warning); }
+.dot.available { background: var(--color-success); }

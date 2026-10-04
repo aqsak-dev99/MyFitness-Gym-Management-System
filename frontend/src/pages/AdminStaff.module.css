@@ -5,7 +5,7 @@
 .addBtn {
   padding: 0.65rem 1.2rem; border-radius: 10px; border: none;
   background: linear-gradient(135deg, var(--color-primary), var(--color-primary-strong));
-  color: white; font-weight: 700; font-size: 0.85rem; cursor: pointer; white-space: nowrap;
+  color: var(--color-on-primary); font-weight: 700; font-size: 0.85rem; cursor: pointer; white-space: nowrap;
 }
 
 .tabs { display: flex; gap: var(--dash-space-2); margin-bottom: var(--dash-space-4); }
@@ -26,7 +26,7 @@
 }
 .addForm button {
   padding: 0.55rem 1.1rem; border-radius: 8px; border: none; background: var(--color-primary);
-  color: white; font-weight: 700; font-size: 0.85rem; cursor: pointer;
+  color: var(--color-on-primary); font-weight: 700; font-size: 0.85rem; cursor: pointer;
 }
 .cancelFormBtn { background: transparent !important; border: 1px solid var(--color-border) !important; color: var(--color-text-secondary) !important; }
 
@@ -50,7 +50,7 @@
 .roleText { font-size: 0.72rem; color: var(--color-text-secondary); }
 
 .statusBadge { font-size: 0.68rem; font-weight: 800; padding: 0.25rem 0.6rem; border-radius: 999px; width: fit-content; }
-.statusBadge.available { background: rgba(52, 199, 89, 0.14); color: #34c759; }
+.statusBadge.available { background: var(--color-success-soft); color: var(--color-success); }
 .statusBadge.unavailable { background: var(--color-danger-soft); color: var(--color-danger); }
 
 .actions { display: flex; gap: var(--dash-space-2); }
