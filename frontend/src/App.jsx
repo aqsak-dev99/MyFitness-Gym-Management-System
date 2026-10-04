@@ -42,7 +42,7 @@ function AppRoutes() {
   const [minTimeElapsed, setMinTimeElapsed] = useState(false);
 
   useEffect(() => {
-    const timer = setTimeout(() => setMinTimeElapsed(true), 1300);
+    const timer = setTimeout(() => setMinTimeElapsed(true), 8000);
     return () => clearTimeout(timer);
   }, []);
 

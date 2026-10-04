@@ -9,6 +9,7 @@ import PageShell from '../components/layout/PageShell';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ErrorMessage from '../components/ErrorMessage';
 import AdminHeroBanner from '../components/dashboard/AdminHeroBanner';
+import MemberHeroBanner from '../components/dashboard/MemberHeroBanner';
 import MembershipCard from '../components/dashboard/MembershipCard';
 import GoalCard from '../components/dashboard/GoalCard';
 import BootcampClassesCard from '../components/dashboard/BootcampClassesCard';
@@ -126,8 +127,13 @@ export default function Dashboard() {
 
   return (
     <PageShell
-      backgroundImage={isAdmin ? undefined : '/assets/member-dashboard-bg.jpg'}
-      heroBanner={isAdmin && !isLoading && !error && !hasNoProfile ? <AdminHeroBanner now={now} /> : null}
+      heroBanner={
+        isLoading || error || hasNoProfile
+          ? null
+          : isAdmin
+            ? <AdminHeroBanner now={now} />
+            : <MemberHeroBanner name={profile?.name} membership={profile?.membership} now={now} />
+      }
     >
       {isLoading ? (
         <div className={styles.centeredState}>
@@ -143,17 +149,6 @@ export default function Dashboard() {
         </div>
       ) : (
         <>
-          {!isAdmin && (
-            <div className={styles.header}>
-              <div>
-                <h1 className={styles.greeting}>
-                  Welcome back{profile?.name ? `, ${profile.name}` : ''}! 👋
-                </h1>
-                <p className={styles.headerSub}>Your fitness journey starts here.</p>
-              </div>
-            </div>
-          )}
-
           {isAdmin ? (
             <>
               <AdminStatsGrid

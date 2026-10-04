@@ -1,0 +1,73 @@
+/* Same construction as the admin banner: PageShell's heroBannerSlot
+   handles the sidebar offset, and the banner's own fixed scrim keeps
+   the white text readable in both themes (it never depends on the
+   page's theme colours). A little shorter than the admin one so the
+   member's summary cards still sit above the fold. */
+.banner {
+  position: relative;
+  width: 100%;
+  height: 200px;
+  overflow: hidden;
+  margin-bottom: var(--dash-space-4);
+  border-radius: 0 0 var(--dash-radius-lg) var(--dash-radius-lg);
+}
+
+.image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.55) 65%, rgba(0,0,0,0.75) 100%);
+}
+
+.content {
+  position: absolute;
+  left: var(--dash-space-4);
+  right: var(--dash-space-4);
+  bottom: var(--dash-space-4);
+  z-index: 1;
+}
+
+.greeting {
+  color: #ffffff;
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin: 0 0 4px;
+  text-shadow: 0 2px 12px rgba(0,0,0,0.4);
+}
+
+.subtitle {
+  color: rgba(255,255,255,0.9);
+  font-size: 0.98rem;
+  margin: 0;
+  text-shadow: 0 1px 8px rgba(0,0,0,0.4);
+}
+
+.dateChip {
+  position: absolute;
+  top: var(--dash-space-3);
+  right: var(--dash-space-3);
+  z-index: 1;
+  background: rgba(0,0,0,0.45);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: var(--dash-radius-md);
+  padding: 8px 14px;
+  color: #ffffff;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+@media (max-width: 700px) {
+  .banner { height: 160px; }
+  .greeting { font-size: 1.5rem; }
+  .dateChip { display: none; }
+}

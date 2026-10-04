@@ -6,6 +6,7 @@ import { ApiError } from '../api/client';
 import PageShell from '../components/layout/PageShell';
 import GlassCard from '../components/dashboard/GlassCard';
 import { SparkleIcon } from '../components/dashboard/Icons';
+import MarkdownAnswer from '../components/MarkdownAnswer';
 import styles from './AiAssistant.module.css';
 
 const MODES = [
@@ -189,7 +190,7 @@ export default function AdminAiAssistant() {
 
         {result && (
           <div className={styles.resultArea}>
-            <p className={styles.answer}>{result.answer}</p>
+            <MarkdownAnswer text={result.answer} />
             {result.citations && result.citations.length > 0 && (
               <div className={styles.citations}>
                 <span className={styles.citationsLabel}>Sources</span>
