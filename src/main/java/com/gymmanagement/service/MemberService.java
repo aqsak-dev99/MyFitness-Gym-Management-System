@@ -148,7 +148,7 @@ public class MemberService {
      * same real Payment and advances the same real due date as the admin
      * action above, so Revenue, the Reports page and the Admin AI all
      * see it. The only differences are the description (labelled as an
-     * online demo payment) and one extra rule the admin path does not
+     * online payment) and one extra rule the admin path does not
      * have: a member can only pay when something is actually due.
      *
      *   OVERDUE / DUE_SOON  → allowed
@@ -183,7 +183,7 @@ public class MemberService {
                 "Your membership is paid up — nothing is due yet. Next payment is due "
                 + membership.getNextPaymentDueDate() + ".");
 
-        return applyMembershipPayment(member, "Online membership payment (demo)");
+        return applyMembershipPayment(member, "Online membership payment");
     }
 
     /** Shared guard for both payment paths: there must be something recurring to pay. */

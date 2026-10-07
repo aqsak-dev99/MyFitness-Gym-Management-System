@@ -60,8 +60,8 @@ export default function Membership() {
       // leaving them wondering why the badge didn't change.
       showToast(
         updated.paymentStatus === 'OVERDUE'
-          ? 'Payment received (demo). You are still overdue — one more payment is needed to catch up.'
-          : 'Payment received (demo). Thank you!'
+          ? 'Payment received. You are still overdue — one more payment is needed to catch up.'
+          : 'Payment received. Thank you!'
       );
     } catch (err) {
       showToast(err instanceof ApiError ? err.message : 'Payment could not be completed.', 'error');

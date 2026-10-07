@@ -14,7 +14,7 @@ import styles from './MembershipPaymentPanel.module.css';
  * refuses a payment when nothing is due.
  *
  * "Pay now" is a SIMULATED payment: no card is entered or charged. The
- * confirm dialog and a footnote say so plainly.
+ * confirm dialog says so plainly, once, at the moment of paying.
  *
  * The page owns the API call (onPay); this component owns only the
  * confirm-dialog state, so it stays presentational.
@@ -148,9 +148,6 @@ export default function MembershipPaymentPanel({ membership, payments = [], onPa
             >
               {isPaying ? 'Processing…' : `Pay ${fee} now`}
             </button>
-            <p className={styles.footnote}>
-              Demo mode — this simulates a payment. No card is used and nothing is charged.
-            </p>
           </>
         )}
 
@@ -184,7 +181,7 @@ export default function MembershipPaymentPanel({ membership, payments = [], onPa
         open={confirmOpen}
         tone="primary"
         title={`Pay ${fee}?`}
-        message={`This is a demo: no real card is charged. It records a ${fee} membership payment on your account and moves your next due date forward by one month.`}
+        message={`Simulated payment — no card is charged. This records a ${fee} membership payment on your account and moves your next due date forward by one month.`}
         confirmLabel={`Pay ${fee}`}
         onConfirm={handleConfirm}
         onCancel={() => setConfirmOpen(false)}

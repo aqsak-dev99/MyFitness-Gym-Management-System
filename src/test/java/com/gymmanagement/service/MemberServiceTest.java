@@ -278,7 +278,7 @@ class MemberServiceTest {
     }
 
     @Test
-    void payingOnlineLabelsThePaymentAsAnOnlineDemoPayment() {
+    void payingOnlineLabelsThePaymentAsAnOnlinePayment() {
         Member member = memberWithDueDate(LocalDate.now().minusDays(10));
 
         memberService.payMembershipOnline("M001");
@@ -286,8 +286,8 @@ class MemberServiceTest {
         Payment newest = member.getPaymentHistory().get(member.getPaymentHistory().size() - 1);
         assertTrue(newest.getDescription().contains("Online"),
             "Description should say it came through the online flow: " + newest.getDescription());
-        assertTrue(newest.getDescription().contains("demo"),
-            "Description should make clear the payment is simulated: " + newest.getDescription());
+        assertFalse(newest.getDescription().startsWith("Membership renewal"),
+            "Should read differently from the admin path's description: " + newest.getDescription());
         assertTrue(newest.getPaymentId().startsWith("PAY-MEM-M001-"));
     }
 
