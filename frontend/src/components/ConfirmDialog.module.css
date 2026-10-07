@@ -21,7 +21,7 @@
 .title {
   margin: 0 0 10px;
   font-size: 1.15rem;
-  font-weight: 700;
+  font-weight: 800;
   color: var(--color-text-primary);
 }
 
@@ -56,4 +56,11 @@
   color: white;
   font-weight: 700;
   cursor: pointer;
+}
+
+/* Constructive confirmations (e.g. recording a payment) use the app's
+   normal primary button colours instead of the destructive red. */
+.confirmPrimary {
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-strong));
+  color: var(--color-on-primary);
 }

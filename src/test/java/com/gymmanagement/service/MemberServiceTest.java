@@ -245,6 +245,157 @@ class MemberServiceTest {
         );
     }
 
+    // ── member-facing simulated payment (payMembershipOnline) ─────────
+    // Due dates are set explicitly (far enough past / future that the
+    // status can't flip on a threshold edge), so these tests never
+    // depend on the exact DUE_SOON window.
+
+    /** Registers M001 with a Standard membership whose next payment is due on {@code due}. */
+    private Member memberWithDueDate(LocalDate due) {
+        memberService.registerMember(
+                "P001", "M001", "Alice Smith", "alice@email.com", "07800100001");
+        memberService.assignMembership("M001", new StandardMembership("MEM001", 12));
+        Member member = memberService.getMemberById("M001");
+        member.getMembership().setNextPaymentDueDate(due);
+        return member;
+    }
+
+    @Test
+    void payingOnlineWhenOverdueRecordsACompletedPaymentAndAdvancesTheDueDate() {
+        LocalDate due = LocalDate.now().minusDays(10);
+        Member member = memberWithDueDate(due);
+        int paymentsBefore = member.getPaymentHistory().size();
+        double fee = member.getMembership().getMonthlyFee();
+
+        memberService.payMembershipOnline("M001");
+
+        Member after = memberService.getMemberById("M001");
+        assertEquals(paymentsBefore + 1, after.getPaymentHistory().size());
+        Payment newest = after.getPaymentHistory().get(after.getPaymentHistory().size() - 1);
+        assertEquals(Payment.STATUS_COMPLETED, newest.getStatus());
+        assertEquals(fee, newest.getAmount());
+        assertEquals(due.plusMonths(1), after.getMembership().getNextPaymentDueDate());
+    }
+
+    @Test
+    void payingOnlineLabelsThePaymentAsAnOnlineDemoPayment() {
+        Member member = memberWithDueDate(LocalDate.now().minusDays(10));
+
+        memberService.payMembershipOnline("M001");
+
+        Payment newest = member.getPaymentHistory().get(member.getPaymentHistory().size() - 1);
+        assertTrue(newest.getDescription().contains("Online"),
+            "Description should say it came through the online flow: " + newest.getDescription());
+        assertTrue(newest.getDescription().contains("demo"),
+            "Description should make clear the payment is simulated: " + newest.getDescription());
+        assertTrue(newest.getPaymentId().startsWith("PAY-MEM-M001-"));
+    }
+
+    @Test
+    void payingOnlineIsAllowedWhenThePaymentIsDueSoon() {
+        Member member = memberWithDueDate(LocalDate.now().plusDays(1));
+        assertEquals("DUE_SOON", member.getMembership().getPaymentStatus());
+
+        memberService.payMembershipOnline("M001");
+
+        assertEquals(LocalDate.now().plusDays(1).plusMonths(1),
+            memberService.getMemberById("M001").getMembership().getNextPaymentDueDate());
+    }
+
+    @Test
+    void payingOnlineWhenAlreadyPaidUpIsRejectedAndChangesNothing() {
+        LocalDate due = LocalDate.now().plusMonths(2);
+        Member member = memberWithDueDate(due);
+        int paymentsBefore = member.getPaymentHistory().size();
+
+        IllegalStateException thrown = assertThrows(IllegalStateException.class, () ->
+            memberService.payMembershipOnline("M001"));
+
+        assertTrue(thrown.getMessage().contains(due.toString()),
+            "The message should tell the member when the next payment is due: " + thrown.getMessage());
+        Member after = memberService.getMemberById("M001");
+        assertEquals(paymentsBefore, after.getPaymentHistory().size());
+        assertEquals(due, after.getMembership().getNextPaymentDueDate());
+    }
+
+    @Test
+    void oneOnlinePaymentSettlesOnlyOneBillingCycle() {
+        // 45 days behind: one payment moves the due date forward one
+        // month (to ~14-17 days ago) — still overdue — so a second is needed.
+        memberWithDueDate(LocalDate.now().minusDays(45));
+
+        memberService.payMembershipOnline("M001");
+        assertEquals("OVERDUE",
+            memberService.getMemberById("M001").getMembership().getPaymentStatus());
+
+        memberService.payMembershipOnline("M001");
+        assertFalse("OVERDUE".equals(
+            memberService.getMemberById("M001").getMembership().getPaymentStatus()));
+    }
+
+    @Test
+    void payingOnlineTwiceInARowOnlyRecordsOnePaymentOnceTheMemberIsPaidUp() {
+        // Models a double-clicked Pay button: the second call re-reads
+        // the already-advanced due date and is refused.
+        Member member = memberWithDueDate(LocalDate.now().minusDays(5));
+        int paymentsBefore = member.getPaymentHistory().size();
+
+        memberService.payMembershipOnline("M001");
+        assertThrows(IllegalStateException.class, () -> memberService.payMembershipOnline("M001"));
+
+        assertEquals(paymentsBefore + 1,
+            memberService.getMemberById("M001").getPaymentHistory().size());
+    }
+
+    @Test
+    void payingOnlineForPayAsYouGoMembershipThrows() {
+        memberService.registerMember(
+                "P001", "M001", "Alice Smith", "alice@email.com", "07800100001");
+        memberService.assignMembership("M001", new PayAsYouGoMembership("MEM001"));
+
+        assertThrows(IllegalArgumentException.class, () -> memberService.payMembershipOnline("M001"));
+    }
+
+    @Test
+    void payingOnlineForMemberWithNoMembershipThrows() {
+        memberService.registerMember(
+                "P001", "M001", "Alice Smith", "alice@email.com", "07800100001");
+
+        assertThrows(MemberNotFoundException.class, () -> memberService.payMembershipOnline("M001"));
+    }
+
+    @Test
+    void payingOnlineForUnknownMemberThrows() {
+        assertThrows(MemberNotFoundException.class, () ->
+            memberService.payMembershipOnline("DOES_NOT_EXIST"));
+    }
+
+    @Test
+    void payingOnlineForADeactivatedMemberIsRejected() {
+        Member member = memberWithDueDate(LocalDate.now().minusDays(10));
+        int paymentsBefore = member.getPaymentHistory().size();
+        memberService.deactivateMember("M001");
+
+        assertThrows(IllegalStateException.class, () -> memberService.payMembershipOnline("M001"));
+
+        assertEquals(paymentsBefore, memberService.getMemberById("M001").getPaymentHistory().size());
+    }
+
+    @Test
+    void theAdminPaymentPathStillAcceptsAPaidUpMemberAndKeepsItsOwnDescription() {
+        // Admin can record e.g. a cash payment taken early — the
+        // "only when due" rule is deliberately member-path only.
+        Member member = memberWithDueDate(LocalDate.now().plusMonths(2));
+        int paymentsBefore = member.getPaymentHistory().size();
+
+        memberService.recordMembershipPayment("M001");
+
+        assertEquals(paymentsBefore + 1,
+            memberService.getMemberById("M001").getPaymentHistory().size());
+        Payment newest = member.getPaymentHistory().get(member.getPaymentHistory().size() - 1);
+        assertEquals("Membership renewal — StandardMembership", newest.getDescription());
+    }
+
     // ── due-date backfill ────────────────────────────────────
 
     @Test

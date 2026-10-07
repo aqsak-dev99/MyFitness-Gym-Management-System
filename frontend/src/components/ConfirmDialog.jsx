@@ -9,8 +9,12 @@ import styles from './ConfirmDialog.module.css';
  *
  * Usage: render conditionally when `open` is true, pass the action-
  * specific copy and a confirm handler.
+ *
+ * `tone` styles the confirm button: 'danger' (default, red — for
+ * destructive actions like remove/deactivate) or 'primary' (the normal
+ * app button — for constructive actions like recording a payment).
  */
-export default function ConfirmDialog({ open, title, message, confirmLabel = 'Confirm', onConfirm, onCancel }) {
+export default function ConfirmDialog({ open, title, message, confirmLabel = 'Confirm', tone = 'danger', onConfirm, onCancel }) {
   if (!open) return null;
 
   return (
@@ -20,7 +24,12 @@ export default function ConfirmDialog({ open, title, message, confirmLabel = 'Co
         <p className={styles.message}>{message}</p>
         <div className={styles.actions}>
           <button className={styles.cancelBtn} onClick={onCancel}>Cancel</button>
-          <button className={styles.confirmBtn} onClick={onConfirm}>{confirmLabel}</button>
+          <button
+            className={`${styles.confirmBtn} ${tone === 'primary' ? styles.confirmPrimary : ''}`}
+            onClick={onConfirm}
+          >
+            {confirmLabel}
+          </button>
         </div>
       </div>
     </div>

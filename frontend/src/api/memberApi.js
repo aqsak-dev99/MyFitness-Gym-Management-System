@@ -27,4 +27,13 @@ export const memberApi = {
   freezeMembership: (memberId) => apiClient.post(`/api/members/${memberId}/membership/freeze`),
   unfreezeMembership: (memberId) => apiClient.post(`/api/members/${memberId}/membership/unfreeze`),
   removeMembership: (memberId) => apiClient.delete(`/api/members/${memberId}/membership`),
+
+  // Payments. payMembership is the member's own simulated "Pay now"
+  // (ownership-checked on the server: a member can only pay their own
+  // membership). recordMembershipPayment is the ADMIN action that
+  // records a payment on a member's behalf. Both return the updated
+  // membership.
+  payMembership: (memberId) => apiClient.post(`/api/members/${memberId}/membership/pay`),
+  recordMembershipPayment: (memberId) =>
+    apiClient.post(`/api/members/${memberId}/membership/payment`),
 };

@@ -136,8 +136,58 @@ public class MemberService {
      * advance, so "recording a membership payment" against one isn't a
      * real, meaningful action, not merely an unsupported one.
      */
-    public Member recordMembershipPayment(String memberId) {
+    public synchronized Member recordMembershipPayment(String memberId) {
         Member member = getMemberById(memberId);
+        requireRecurringMembership(member, memberId);
+        return applyMembershipPayment(member, "Membership renewal");
+    }
+
+    /**
+     * The member-facing "Pay now" — a SIMULATED online payment. No card
+     * is taken and no payment provider is called: it records exactly the
+     * same real Payment and advances the same real due date as the admin
+     * action above, so Revenue, the Reports page and the Admin AI all
+     * see it. The only differences are the description (labelled as an
+     * online demo payment) and one extra rule the admin path does not
+     * have: a member can only pay when something is actually due.
+     *
+     *   OVERDUE / DUE_SOON  → allowed
+     *   PAID                → rejected (nothing due yet; says when it is)
+     *   deactivated member  → rejected
+     *   no membership / no recurring due date (Pay As You Go) → rejected
+     *     by the same checks the admin action uses
+     *
+     * The admin keeps the broader power (e.g. recording a cash payment
+     * taken at the desk early), so that rule stays on the member path
+     * only. Ownership — a member paying only their OWN membership — is
+     * enforced at the controller by @RequireOwnership, not here.
+     *
+     * One payment settles one billing cycle: a member two cycles behind
+     * is still OVERDUE after one payment and pays again. synchronized
+     * (shared with the admin action) makes the read-check-write atomic,
+     * so a double-clicked button cannot record the same cycle twice —
+     * the second call re-reads the advanced due date and is rejected
+     * once the member is paid up.
+     */
+    public synchronized Member payMembershipOnline(String memberId) {
+        Member member = getMemberById(memberId);
+        if (!member.isActive())
+            throw new IllegalStateException(
+                "This member account is deactivated — please contact the gym to pay.");
+        requireRecurringMembership(member, memberId);
+
+        Membership membership = member.getMembership();
+        String status = membership.getPaymentStatus();
+        if (!"OVERDUE".equals(status) && !"DUE_SOON".equals(status))
+            throw new IllegalStateException(
+                "Your membership is paid up — nothing is due yet. Next payment is due "
+                + membership.getNextPaymentDueDate() + ".");
+
+        return applyMembershipPayment(member, "Online membership payment (demo)");
+    }
+
+    /** Shared guard for both payment paths: there must be something recurring to pay. */
+    private void requireRecurringMembership(Member member, String memberId) {
         Membership membership = member.getMembership();
         if (membership == null)
             throw new MemberNotFoundException(
@@ -145,11 +195,19 @@ public class MemberService {
         if (membership.getNextPaymentDueDate() == null)
             throw new IllegalArgumentException(
                 "This membership type has no recurring due date — nothing to record.");
+    }
 
-        String paymentId = "PAY-MEM-" + memberId + "-" + UUID.randomUUID().toString().substring(0, 8);
+    /**
+     * Shared recording step: one COMPLETED Payment for one monthly fee,
+     * due date advanced one cycle, saved. Callers have already validated.
+     */
+    private Member applyMembershipPayment(Member member, String descriptionPrefix) {
+        Membership membership = member.getMembership();
+        String paymentId = "PAY-MEM-" + member.getMemberId() + "-"
+                         + UUID.randomUUID().toString().substring(0, 8);
         Payment payment = new Payment(
             paymentId, membership.getMonthlyFee(),
-            "Membership renewal — " + membership.getClass().getSimpleName(), member);
+            descriptionPrefix + " — " + membership.getClass().getSimpleName(), member);
         payment.markCompleted();
         member.addPayment(payment);
         membership.advancePaymentDueDate();

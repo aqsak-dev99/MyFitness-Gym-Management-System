@@ -1,3 +1,14 @@
-.title { color: var(--color-text-primary); font-size: 1.625rem; font-weight: 700; letter-spacing: -0.02em; margin: 0 0 var(--dash-space-5); }
+.title { color: var(--color-text-primary); font-size: 2rem; font-weight: 800; letter-spacing: -0.02em; margin: 0 0 var(--dash-space-5); }
 .errorText { color: var(--color-danger); }
 .noMembership { color: var(--color-text-secondary); font-size: 0.95rem; }
+
+/* Card + payment panel: stacked on phones/tablets, side by side on wide screens. */
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--dash-space-5);
+  align-items: start;
+}
+@media (min-width: 900px) {
+  .layout { grid-template-columns: minmax(280px, 380px) minmax(0, 1fr); }
+}

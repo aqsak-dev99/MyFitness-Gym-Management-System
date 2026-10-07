@@ -12,6 +12,17 @@ import styles from './AdminMembers.module.css';
 const EMPTY_NEW_MEMBER = { personId: '', memberId: '', name: '', email: '', phone: '' };
 const EMPTY_MEMBERSHIP_FORM = { membershipId: '', type: 'STANDARD', durationMonths: '12', studentIdNumber: '' };
 
+// Pay As You Go has no recurring due date (paymentStatus 'N/A'), so there is
+// nothing to record a payment against — the server rejects it, so the
+// button is simply not offered.
+function hasRecurringPayments(membership) {
+  return !!membership.paymentStatus && membership.paymentStatus !== 'N/A';
+}
+
+function paymentStatusLabel(status) {
+  return { OVERDUE: 'overdue', DUE_SOON: 'due soon', PAID: 'paid up' }[status] ?? 'n/a';
+}
+
 /**
  * Full real Members CRUD — every action here calls a genuine backend
  * endpoint, all verified against the actual controller/service code
@@ -23,7 +34,7 @@ export default function AdminMembers() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
-  const [confirmTarget, setConfirmTarget] = useState(null); // { type: 'deactivate'|'removeMembership', member }
+  const [confirmTarget, setConfirmTarget] = useState(null); // { type: 'deactivate'|'removeMembership'|'recordPayment', member }
 
   const [showAddForm, setShowAddForm] = useState(false);
   const [newMember, setNewMember] = useState(EMPTY_NEW_MEMBER);
@@ -177,6 +188,31 @@ export default function AdminMembers() {
     }
   }
 
+  // Recording a payment is the admin side of the member's "Pay now": the
+  // same server logic (a completed Payment + due date moved forward one
+  // month), but allowed whatever the status — e.g. cash taken at the desk.
+  // It changes money records, so it goes through a confirm dialog first.
+  function requestRecordPayment(m) {
+    setConfirmTarget({ type: 'recordPayment', member: m });
+  }
+
+  async function confirmRecordPayment() {
+    const m = confirmTarget.member;
+    setConfirmTarget(null);
+    setMembershipBusy(true);
+    setMembershipError('');
+    try {
+      await memberApi.recordMembershipPayment(m.memberId);
+      await loadMembers();
+      showToast(`Payment of £${m.membership.monthlyFee.toFixed(2)} recorded for ${m.name}.`);
+    } catch (err) {
+      setMembershipError(err instanceof ApiError ? err.message : 'Could not record payment.');
+      showToast('Could not record payment.', 'error');
+    } finally {
+      setMembershipBusy(false);
+    }
+  }
+
   function requestRemoveMembership(m) {
     setConfirmTarget({ type: 'removeMembership', member: m });
   }
@@ -196,6 +232,40 @@ export default function AdminMembers() {
       setMembershipBusy(false);
     }
   }
+
+  // Copy + handler for whichever confirmation is open. Only read while
+  // `confirmTarget` is set; the fallbacks keep the closed dialog harmless.
+  const confirmMember = confirmTarget?.member;
+  const confirmFee = confirmMember?.membership?.monthlyFee?.toFixed(2);
+  const dialogs = {
+    deactivate: {
+      title: 'Deactivate member?',
+      message: `${confirmMember?.name} will no longer be able to log in or access their account. Their history is preserved and this can be undone by reactivating.`,
+      confirmLabel: 'Deactivate',
+      tone: 'danger',
+      onConfirm: confirmDeactivate,
+    },
+    removeMembership: {
+      title: 'Remove membership?',
+      message: `This removes ${confirmMember?.name}'s current membership entirely. This cannot be undone — a new membership would need to be assigned from scratch.`,
+      confirmLabel: 'Remove',
+      tone: 'danger',
+      onConfirm: confirmRemoveMembership,
+    },
+    recordPayment: {
+      title: 'Record payment?',
+      message:
+        `Record a £${confirmFee} membership payment for ${confirmMember?.name}? ` +
+        'This marks one monthly payment as received and moves their next due date forward by one month.' +
+        (confirmMember?.membership?.paymentStatus === 'PAID'
+          ? ' They are currently paid up, so this will be an advance payment.'
+          : ''),
+      confirmLabel: 'Record payment',
+      tone: 'primary',
+      onConfirm: confirmRecordPayment,
+    },
+  };
+  const dialog = dialogs[confirmTarget?.type] ?? dialogs.removeMembership;
 
   return (
     <PageShell>
@@ -291,8 +361,11 @@ export default function AdminMembers() {
                 <div className={styles.membershipPanel}>
                   {m.membership ? (
                     <div className={styles.currentMembership}>
-                      <span>Current: <strong>{m.membership.membershipId}</strong> — £{m.membership.monthlyFee?.toFixed(2)}/mo, {m.membership.daysRemaining} days left, {m.membership.frozen ? 'FROZEN' : 'active'}</span>
+                      <span>Current: <strong>{m.membership.membershipId}</strong> — £{m.membership.monthlyFee?.toFixed(2)}/mo, {m.membership.daysRemaining} days left, {m.membership.frozen ? 'FROZEN' : 'active'}{hasRecurringPayments(m.membership) && ` · payment ${paymentStatusLabel(m.membership.paymentStatus)}`}</span>
                       <div className={styles.membershipActions}>
+                        {hasRecurringPayments(m.membership) && (
+                          <button onClick={() => requestRecordPayment(m)} disabled={membershipBusy}>Record payment</button>
+                        )}
                         <button onClick={() => handleFreezeToggle(m)} disabled={membershipBusy}>{m.membership.frozen ? 'Unfreeze' : 'Freeze'}</button>
                         <button onClick={() => requestRemoveMembership(m)} disabled={membershipBusy} className={styles.dangerBtn}>Remove</button>
                       </div>
@@ -329,14 +402,11 @@ export default function AdminMembers() {
 
       <ConfirmDialog
         open={!!confirmTarget}
-        title={confirmTarget?.type === 'deactivate' ? 'Deactivate member?' : 'Remove membership?'}
-        message={
-          confirmTarget?.type === 'deactivate'
-            ? `${confirmTarget?.member?.name} will no longer be able to log in or access their account. Their history is preserved and this can be undone by reactivating.`
-            : `This removes ${confirmTarget?.member?.name}'s current membership entirely. This cannot be undone — a new membership would need to be assigned from scratch.`
-        }
-        confirmLabel={confirmTarget?.type === 'deactivate' ? 'Deactivate' : 'Remove'}
-        onConfirm={confirmTarget?.type === 'deactivate' ? confirmDeactivate : confirmRemoveMembership}
+        title={dialog.title}
+        message={dialog.message}
+        confirmLabel={dialog.confirmLabel}
+        tone={dialog.tone}
+        onConfirm={dialog.onConfirm}
         onCancel={() => setConfirmTarget(null)}
       />
     </PageShell>

@@ -1,5 +1,6 @@
 package com.gymmanagement.controller;
 
+import com.gymmanagement.config.RequireOwnership;
 import com.gymmanagement.config.RequireRole;
 import com.gymmanagement.model.BootcampClass;
 import com.gymmanagement.model.Payment;
@@ -277,6 +278,23 @@ public class MembershipController {
     @RequireRole(Role.ADMIN)
     public Membership recordMembershipPayment(@PathVariable String memberId) {
         memberService.recordMembershipPayment(memberId);
+        return membershipService.getMembership(memberId);
+    }
+
+    /**
+     * POST /api/members/{memberId}/membership/pay
+     * The member-facing "Pay now" — a SIMULATED online payment (no card,
+     * no provider). Records the same real Payment and advances the same
+     * real due date as the admin endpoint above, but is only accepted
+     * when a payment is actually due, and only for the member's OWN
+     * membership: @RequireOwnership("memberId") lets a MEMBER token
+     * through only when its linked member matches the path (ADMIN
+     * bypasses ownership, as everywhere else).
+     */
+    @PostMapping("/api/members/{memberId}/membership/pay")
+    @RequireOwnership("memberId")
+    public Membership payMembershipOnline(@PathVariable String memberId) {
+        memberService.payMembershipOnline(memberId);
         return membershipService.getMembership(memberId);
     }
 
