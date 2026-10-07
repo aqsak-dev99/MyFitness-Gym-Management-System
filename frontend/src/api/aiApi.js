@@ -10,6 +10,10 @@ import { apiClient } from './client';
  */
 export const aiApi = {
   ask: (question) => apiClient.post('/api/ai/ask', { question }),
+  // Admin-only (403 for members). The model can look up live gym data -
+  // revenue, overdue members, memberships, class capacity - through a fixed
+  // set of read-only backend tools; it never touches the database itself.
+  askAdmin: (question) => apiClient.post('/api/ai/admin/ask', { question }),
   askAboutBootcampClasses: (question) => apiClient.post('/api/ai/bootcamp-classes/ask', { question }),
   getBootcampRecommendation: (memberId) =>
     apiClient.get(`/api/ai/members/${memberId}/bootcamp-recommendation`),

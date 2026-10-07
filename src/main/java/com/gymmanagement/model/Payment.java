@@ -63,6 +63,27 @@ public class Payment {
     public void markCompleted() { this.status = STATUS_COMPLETED; }
     public void markFailed()    { this.status = STATUS_FAILED;    }
 
+    // ── persistence helper ────────────────────────────────
+    /**
+     * Restores the exact payment date loaded from the database.
+     *
+     * The constructor always stamps paymentDate = LocalDate.now(), which is
+     * right for a payment being created today but wrong for one being
+     * rebuilt from a stored row. Before this method existed, every payment
+     * read back from the database reported "today" as its date, so any
+     * date-based figure (revenue this month, a monthly breakdown) quietly
+     * collapsed into the current period.
+     *
+     * Same pattern, same reasoning, and same "FromDb" naming as
+     * Member.setRegistrationDateFromDb(): public only because the
+     * repository lives in another package, and application/service code
+     * should never call it. A null date is ignored rather than wiping the
+     * default.
+     */
+    public void setPaymentDateFromDb(LocalDate date) {
+        if (date != null) this.paymentDate = date;
+    }
+
     // ── getDetails ────────────────────────────────────────
     public String getDetails() {
         return String.format(

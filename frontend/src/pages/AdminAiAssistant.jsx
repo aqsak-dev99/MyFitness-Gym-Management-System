@@ -23,6 +23,11 @@ const MODES = [
  * DocumentController, not just by what this page happens to fetch —
  * a Member hitting the same endpoints gets a completely disjoint set).
  *
+ * General mode now calls POST /api/ai/admin/ask instead of /api/ai/ask:
+ * that endpoint is ADMIN-only and lets the model answer live operational
+ * questions through a fixed set of read-only backend tools (see
+ * AdminAiTools). The Documents mode is unchanged.
+ *
  * Bootcamp tool-calling and the goal-based recommendation mode from the
  * Member page are intentionally NOT here — both are member-specific
  * concepts (a member's own goal, a member's own enrolments) that don't
@@ -92,7 +97,7 @@ export default function AdminAiAssistant() {
     setIsLoading(true);
     try {
       if (mode === 'general') {
-        const res = await aiApi.ask(question.trim());
+        const res = await aiApi.askAdmin(question.trim());
         setResult({ answer: res.answer });
       } else {
         if (!selectedDocId) {
@@ -113,7 +118,7 @@ export default function AdminAiAssistant() {
   return (
     <PageShell>
       <h1 className={styles.title}>Admin AI Assistant</h1>
-      <p className={styles.subtitle}>Ask general questions or query your Admin knowledge base — gym policies, procedures, and operations.</p>
+      <p className={styles.subtitle}>Ask about live gym data — revenue, overdue members, memberships, class capacity — or query your Admin knowledge base for policies and procedures.</p>
 
       <div className={styles.modeTabs}>
         {MODES.map((m) => (
@@ -171,7 +176,7 @@ export default function AdminAiAssistant() {
             <SparkleIcon size={16} color="var(--color-primary)" />
             <input
               className={styles.questionInput}
-              placeholder={mode === 'documents' ? 'Ask a question about this document…' : 'Ask anything about running the gym…'}
+              placeholder={mode === 'documents' ? 'Ask a question about this document…' : 'e.g. How much revenue did we make this month?'}
               value={question}
               onChange={(e) => setQuestion(e.target.value)}
               disabled={mode === 'documents' && documents.length === 0}

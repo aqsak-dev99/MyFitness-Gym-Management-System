@@ -456,6 +456,7 @@ public class SqliteMemberRepository implements MemberRepository {
                     String    status      = rs.getString("status");
 
                     Payment p = new Payment(paymentId, amount, description, member);
+                    restorePaymentDate(p, rs);
                     if (Payment.STATUS_COMPLETED.equals(status)) p.markCompleted();
                     else if (Payment.STATUS_FAILED.equals(status)) p.markFailed();
                     payments.add(p);
@@ -520,11 +521,32 @@ public class SqliteMemberRepository implements MemberRepository {
                     String status      = rs.getString("status");
 
                     Payment p = new Payment(paymentId, amount, description, member);
+                    restorePaymentDate(p, rs);
                     if (Payment.STATUS_COMPLETED.equals(status)) p.markCompleted();
                     else if (Payment.STATUS_FAILED.equals(status)) p.markFailed();
                     member.addPayment(p);
                 }
             }
+        }
+    }
+
+    /**
+     * Puts the stored payment_date back on a Payment rebuilt from a row.
+     * Payment's constructor always stamps "today", so without this every
+     * payment read from the database claimed to have been made today —
+     * which silently broke every date-based figure built on payment
+     * history (revenue this month, monthly breakdowns). The column is
+     * written from LocalDate.toString() ("YYYY-MM-DD") and is NOT NULL;
+     * only the first 10 characters are read so a driver that returns a
+     * timestamp-style string for a DATE column still parses.
+     *
+     * Shared by both payment loaders (single-member and batch) so the two
+     * can never drift apart again.
+     */
+    private void restorePaymentDate(Payment payment, ResultSet rs) throws SQLException {
+        String raw = rs.getString("payment_date");
+        if (raw != null && raw.length() >= 10) {
+            payment.setPaymentDateFromDb(LocalDate.parse(raw.substring(0, 10)));
         }
     }
 
