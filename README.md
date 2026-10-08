@@ -1,6 +1,6 @@
 # MyFitness — Gym Management System
 
-A full-stack gym management system with role-based access, membership billing, and an AI assistant that answers from uploaded documents using retrieval-augmented generation (RAG).
+A full-stack gym management system with role-based access, membership billing and an AI assistant that answers from uploaded documents using retrieval-augmented generation (RAG) and for admins, from live gym data through controlled tool calls.
 
 **Live app:** https://myfitness-frontend.onrender.com
 **API:** https://myfitness-gym-management-system.onrender.com
@@ -33,10 +33,12 @@ A full-stack gym management system with role-based access, membership billing, a
 - Revenue dashboard and reports calculated from payment and membership data
 - CSV export for members and revenue
 - AI Assistant with an admin-only document knowledge base
+- Ask the AI Assistant about live data: revenue for a date range, overdue members, membership and payment-status counts, class occupancy, recent payments
+- Record a membership payment from a member's membership panel, with a confirmation step
 
 **Member**
 
-- Personal dashboard with membership status and billing history
+- Membership page with payment status, recent payments and a "Pay now" button when a payment is due or overdue.
 - Fitness goal tracking
 - Class browsing (enrolment is handled by admins)
 - AI Assistant with a member-only knowledge base, plus class recommendations based on the member's stated goal
@@ -71,9 +73,9 @@ flowchart TB
 
     subgraph be["Backend: Render web service (Spring Boot)"]
         auth["Auth interceptor<br/>JWT, role and ownership checks"]
-        ctrl["REST controllers<br/>53 endpoints"]
-        svc["Services<br/>Members, billing, staff, classes"]
-        ai["AI services<br/>Chunking, retrieval, document answers,<br/>recommendations, tool calling"]
+        ctrl["REST controllers<br/>55 endpoints"]
+        svc["Services<br/>Members, billing and payments,<br/>staff, classes, reporting"]
+        ai["AI services<br/>Chunking, retrieval, document answers,<br/>recommendations, admin live-data tools"]
         limiter["Rate limiter"]
         repo["Repositories"]
     end
@@ -91,6 +93,7 @@ flowchart TB
     ctrl --> ai
     svc --> repo
     ai --> repo
+    ai -->|"read-only tools"| svc
     ai --> limiter
     limiter --> gemini
     repo -->|"HikariCP pool"| pg
@@ -106,6 +109,9 @@ Role and ownership checks run on the backend for every protected endpoint, throu
 
 A membership's status (`PAID`, `DUE_SOON`, `OVERDUE`) is computed on read from the due date and today's date. Nothing is written to the database as a status flag, so the status can never disagree with the dates it depends on.
 
+### Member payments are simulated, but the rules are real
+"Pay now" records a real completed payment and moves the due date forward one month, using the same logic as the admin's "Record payment" button. It takes no card and calls no payment provider. The server decides who can pay and when: a member can pay only their own membership (`@RequireOwnership`), only when it is overdue or due soon, and one payment settles one monthly cycle, so someone two months behind pays twice. The method is synchronized, so a double-click cannot record the same cycle twice. New payments show up immediately in Revenue, Reports, and the AI's answers.
+
 ### The AI assistant
 
 - **Document Q&A (RAG).** Uploaded documents are split into overlapping chunks, embedded with Gemini, and stored in pgvector. A question is embedded the same way and matched by cosine distance. The assistant answers only from the retrieved chunks and cites its sources.
@@ -114,7 +120,9 @@ A membership's status (`PAID`, `DUE_SOON`, `OVERDUE`) is computed on read from t
 - **Tool calling.** For questions about classes, the model calls a function that queries the live class data instead of relying on retrieved text.
 - **Recommendations.** Class suggestions are generated from the member's free-text fitness goal and the classes currently available.
 - **Quota protection.** A rate limiter sits in front of every Gemini call, and the model name is set through an environment variable so a deprecated model can be replaced without a code change.
+- **Live data (admin).** Questions about revenue, overdue members, memberships and class capacity are answered through tool calling. Gemini chooses from a fixed allow-list of five read-only tools and each one calls an existing service and returns structured data. The model never gets database access and never writes SQL. The endpoint is ADMIN-only, tool errors reach the model as generic messages so internals cannot leak and each question is capped at 4 model calls. If the data does not exist, the assistant says so instead of guessing.
 
+  
 ### Database access
 
 The backend uses a HikariCP pool. An earlier version held a single shared connection, which failed when the database closed an idle connection. Member and class lookups originally ran 2N+1 queries per page; they now use batch loading with a fixed number of queries regardless of page size.
@@ -129,20 +137,23 @@ The frontend and backend are hosted as two separate services. CORS origins and t
 mvn test
 ```
 
-119 tests across 12 test classes, covering service-layer business logic, billing and membership edge cases, authorization, and the AI pipeline.
+211 tests across 18 test classes, covering service-layer business logic, billing and membership edge cases, authorization, and the AI pipeline.
 
-- **Fakes instead of a mocking framework.** Every repository is an interface, and tests use small hand-written in-memory implementations of them.
+- **Fakes instead of a mocking framework.** Every repository is an interface and tests use small hand-written in-memory implementations of them.
 - **AI code is tested without network calls.** The Gemini chat and embedding clients sit behind `AiChatClient` and `AiEmbeddingClient` interfaces, so tests substitute fakes and never need an API key.
-- **Refusals are verified by behaviour.** The refusal tests check that the fake client received no prompt, which confirms Gemini was not called, in addition to checking the response text.
+- **Refusals are verified by behaviour.** The refusal tests check that the fake client received no prompt which confirms Gemini was not called, in addition to checking the response text.
 - **Chunking is pinned down.** Tests cover overlap between consecutive chunks and guarantee the chunking loop terminates on long input.
+- **Admin AI tested without Gemini.** The tool-calling loop sits behind a `ToolChatModel` interface. Tests script the model's replies with a fake and check which tools were called, that unknown tools are rejected, that the call caps hold, and that error details do not leak.
+- **Authorization tested through the real interceptor.** Tests build real `HandlerMethod` objects from the controllers and check that a member can pay their own membership but not another member's, and that members cannot reach the admin-only endpoints.
 
 ## Bugs worth mentioning
 
-- **Silent data loss from `INSERT OR REPLACE`.** It deletes and re-inserts the row, which triggered `ON DELETE CASCADE` and removed a member's class enrolments on every update. Replaced with `ON CONFLICT DO UPDATE`.
+- **Silent data loss from `INSERT OR REPLACE`.** It deletes and re-inserts the row which triggered `ON DELETE CASCADE` and removed a member's class enrolments on every update. Replaced with `ON CONFLICT DO UPDATE`.
 - **Password hash in API responses.** A public getter on `User` was being serialized into JSON. Excluded with `@JsonIgnore`.
 - **A type error the tests could not see.** A `DATE` column was being written with `setString()`. SQLite had tolerated it; PostgreSQL rejected it. Because the tests run against in-memory fakes, they never touched the SQL.
-- **Embedding size mismatch.** The embedding API returned 3072-dimension vectors while the column was defined for 768. Fixing the code was not enough, because `ADD COLUMN IF NOT EXISTS` does not change an existing column; the column had to be recreated.
+- **Embedding size mismatch.** The embedding API returned 3072-dimension vectors while the column was defined for 768. Fixing the code was not enough because `ADD COLUMN IF NOT EXISTS` does not change an existing column; the column had to be recreated.
 - **Failed deploys that looked healthy.** The host keeps serving the last successful build when a new deploy fails. Four deploys failed on a missing environment variable while the live site appeared to work.
+- **Every payment re-dated to today.** The `Payment` constructor stamps `LocalDate.now()`, and the repository never restored the stored date when loading, so month-based revenue was wrong. Found while building the revenue tool for the admin AI; fixed by restoring `payment_date` on load, with tests.
 
 ## Known limitations
 
@@ -150,14 +161,15 @@ mvn test
 - There are no frontend or end-to-end tests yet.
 - Members cannot enrol themselves in classes; an admin does it.
 - Single gym only. There is no multi-tenancy.
-- Payments are recorded in the system, not processed through a payment provider.
+- Payments are simulated: the app records them but does not use a payment provider, so "Pay now" charges nothing.
+- An admin AI question about live data uses 2–3 Gemini calls, so the rate limiter (5 calls a minute) allows about two such questions a minute.
 - Free-tier hosting means cold starts, and the Gemini free tier has a daily request limit.
 
 ## Running locally
 
 **Backend**
 
-Requires Java 21, Maven, and a PostgreSQL database with pgvector available (Neon works).
+Requires Java 21, Maven and a PostgreSQL database with pgvector available (Neon works).
 
 ```bash
 git clone https://github.com/aqsak-dev99/MyFitness-Gym-Management-System.git
@@ -186,7 +198,7 @@ The frontend runs on http://localhost:5173 and uses `localhost:8080` as the API 
 
 ## API
 
-53 REST endpoints across Members, Staff, Bootcamp Classes, Memberships, Payments, Documents, AI, and Auth. Interactive documentation is at `/swagger-ui.html` on the running backend.
+55 REST endpoints across Members, Staff, Bootcamp Classes, Memberships, Payments, Documents, AI, and Auth. Interactive documentation is at `/swagger-ui.html` on the running backend.
 
 ## License
 
