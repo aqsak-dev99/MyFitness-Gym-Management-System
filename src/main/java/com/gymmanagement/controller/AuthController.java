@@ -1,13 +1,11 @@
 package com.gymmanagement.controller;
 
-import com.gymmanagement.model.Role;
 import com.gymmanagement.model.User;
 import com.gymmanagement.service.AuthService;
 import com.gymmanagement.service.JwtService;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -36,8 +34,10 @@ public class AuthController {
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
     public LoginResponse register(@Valid @RequestBody RegisterRequest request) {
-        User user = authService.register(
-            request.username(), request.password(), request.role(), request.linkedMemberId()
+        // The role is never taken from the request: public sign-up always
+        // creates a MEMBER (see AuthService.registerMember).
+        User user = authService.registerMember(
+            request.username(), request.password(), request.linkedMemberId()
         );
         String token = jwtService.generateToken(user);
         return new LoginResponse(token, user);
@@ -63,8 +63,7 @@ public class AuthController {
     public record RegisterRequest(
         @NotBlank String username,
         @NotBlank @Size(min = 6) String password,
-        @NotNull Role role,
-        String linkedMemberId   // deliberately no @NotBlank — null is valid for ADMIN accounts
+        String linkedMemberId   // optional; a member ID can be claimed by one login only
     ) {}
 
     public record LoginRequest(@NotBlank String username, @NotBlank String password) {}

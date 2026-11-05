@@ -106,6 +106,31 @@ class AuthServiceTest {
         );
     }
 
+    // ── public sign-up ────────────────────────────────────
+
+    @Test
+    void publicSignUpAlwaysCreatesAMember() {
+        User user = authService.registerMember("newbie", "Newbie@123", null);
+
+        assertEquals(Role.MEMBER, user.getRole());
+    }
+
+    @Test
+    void publicSignUpCannotClaimAMemberIdThatIsAlreadyLinked() {
+        authService.registerMember("alice", "Alice@123", "M001");
+
+        assertThrows(DuplicateUserException.class, () ->
+            authService.registerMember("mallory", "Mallory@123", "M001")
+        );
+    }
+
+    @Test
+    void publicSignUpTreatsABlankMemberIdAsNone() {
+        User user = authService.registerMember("sam", "Sam@12345", "   ");
+
+        assertEquals(null, user.getLinkedMemberId());
+    }
+
     // ── authorization ─────────────────────────────────────
 
     @Test

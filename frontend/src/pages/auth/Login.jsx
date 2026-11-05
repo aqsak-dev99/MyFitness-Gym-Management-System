@@ -25,12 +25,18 @@ export default function Login() {
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  async function handleSubmit(event) {
-    event.preventDefault();
+  // Public demo accounts (also listed in the README). They exist so
+  // recruiters and visitors can try both sides of the app in one click.
+  const DEMO_ACCOUNTS = [
+    { label: 'Try as admin', username: 'demo_admin', password: 'DemoPass123' },
+    { label: 'Try as member', username: 'dm01_demo', password: 'DemoPass123' },
+  ];
+
+  async function signIn(user, pass) {
     setError('');
     setIsSubmitting(true);
     try {
-      await login(username, password);
+      await login(user, pass);
       navigate('/');
     } catch (err) {
       // InvalidCredentialsException deliberately returns the SAME
@@ -42,6 +48,17 @@ export default function Login() {
     } finally {
       setIsSubmitting(false);
     }
+  }
+
+  function handleSubmit(event) {
+    event.preventDefault();
+    signIn(username, password);
+  }
+
+  function tryDemo(account) {
+    setUsername(account.username);
+    setPassword(account.password);
+    signIn(account.username, account.password);
   }
 
   return (
@@ -96,6 +113,26 @@ export default function Login() {
               Log In
             </Button>
           </form>
+
+          <div className={styles.demoBox}>
+            <p className={styles.demoTitle}>Just looking around? Use a demo account</p>
+            <div className={styles.demoButtons}>
+              {DEMO_ACCOUNTS.map((account) => (
+                <button
+                  key={account.username}
+                  type="button"
+                  className={styles.demoButton}
+                  onClick={() => tryDemo(account)}
+                  disabled={isSubmitting}
+                >
+                  {account.label}
+                </button>
+              ))}
+            </div>
+            <p className={styles.demoNote}>
+              Admin: demo_admin · Member: dm01_demo · Password: DemoPass123
+            </p>
+          </div>
         </div>
       </div>
       </div>

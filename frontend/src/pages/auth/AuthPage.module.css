@@ -151,3 +151,31 @@
 
 /* Radio buttons use the theme's primary colour instead of browser blue. */
 .roleOption input { accent-color: var(--color-primary); }
+
+/* Demo accounts on the login page */
+.demoBox {
+  margin-top: 1.4rem;
+  padding: 1rem;
+  border: 1px dashed var(--color-border-strong);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+.demoTitle { font-size: 0.85rem; font-weight: 600; color: var(--color-text-primary); }
+.demoButtons { display: flex; flex-wrap: wrap; gap: 0.6rem; }
+.demoButton {
+  flex: 1 1 140px;
+  min-height: 44px;
+  border-radius: 10px;
+  border: 1px solid var(--color-border-strong);
+  background: transparent;
+  color: var(--color-text-primary);
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.demoButton:hover:not(:disabled) { border-color: var(--color-primary); color: var(--color-primary); }
+.demoButton:disabled { opacity: 0.6; cursor: not-allowed; }
+.demoNote { font-size: 0.78rem; color: var(--color-text-secondary); }

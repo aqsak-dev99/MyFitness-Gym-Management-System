@@ -54,6 +54,32 @@ public class AuthService {
         return user;
     }
 
+    /**
+     * Public self-registration, used by POST /api/auth/register.
+     *
+     * Two rules the server enforces here, whatever the client sends:
+     *  1. The account is ALWAYS a MEMBER. Admin accounts are never created
+     *     through public sign-up, so a hidden form field or a hand-written
+     *     API request cannot grant admin access.
+     *  2. A member ID can be linked to only ONE login. Without this, anyone
+     *     could register with someone else's ID (e.g. "M001") and see that
+     *     member's profile and payments.
+     *
+     * The general register(...) above stays for trusted internal use
+     * (seeding demo data, tests, the console app).
+     */
+    public User registerMember(String username, String plainPassword, String linkedMemberId) {
+        String memberId = (linkedMemberId == null || linkedMemberId.isBlank()) ? null : linkedMemberId.trim();
+        if (memberId != null) {
+            boolean alreadyLinked = userRepo.findAll().stream()
+                .anyMatch(u -> memberId.equalsIgnoreCase(u.getLinkedMemberId()));
+            if (alreadyLinked)
+                throw new DuplicateUserException(
+                    "That member ID is already linked to an account. Ask gym staff for help.");
+        }
+        return register(username, plainPassword, Role.MEMBER, memberId);
+    }
+
     // ── login ─────────────────────────────────────────────
 
     /**

@@ -32,7 +32,6 @@ export default function Register() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [role, setRole] = useState('MEMBER');
   const [linkedMemberId, setLinkedMemberId] = useState('');
 
   const [error, setError] = useState('');
@@ -54,8 +53,7 @@ export default function Register() {
       await register({
         username,
         password,
-        role,
-        linkedMemberId: role === 'MEMBER' && linkedMemberId.trim() ? linkedMemberId.trim() : null,
+        linkedMemberId: linkedMemberId.trim() ? linkedMemberId.trim() : null,
       });
       navigate('/');
     } catch (err) {
@@ -135,34 +133,7 @@ export default function Register() {
             required
           />
 
-          <div className={styles.roleGroup}>
-            <span>Account type</span>
-            <div className={styles.roleOptions}>
-              <label className={styles.roleOption}>
-                <input
-                  type="radio"
-                  name="role"
-                  value="MEMBER"
-                  checked={role === 'MEMBER'}
-                  onChange={() => setRole('MEMBER')}
-                />
-                Member
-              </label>
-              <label className={styles.roleOption}>
-                <input
-                  type="radio"
-                  name="role"
-                  value="ADMIN"
-                  checked={role === 'ADMIN'}
-                  onChange={() => setRole('ADMIN')}
-                />
-                Admin (staff)
-              </label>
-            </div>
-          </div>
-
-          {role === 'MEMBER' && (
-            <>
+          <>
               <TextField
                 id="linkedMemberId"
                 label="Member ID (optional)"
@@ -173,12 +144,11 @@ export default function Register() {
                 placeholder="e.g. M001"
               />
               <p className={styles.hint}>
-                If gym staff have already registered you as a member, enter your Member ID
-                to link this login to your profile. If you don't have one yet, leave this
-                blank — you can still create an account now.
+                New accounts are member accounts. If gym staff have already registered you,
+                enter your Member ID to link this login to your profile, otherwise leave it
+                blank. Staff accounts are set up by the gym.
               </p>
-            </>
-          )}
+          </>
 
           <Button type="submit" isLoading={isSubmitting}>
             Create account
